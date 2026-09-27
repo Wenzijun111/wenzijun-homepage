@@ -83,9 +83,17 @@
     }
   }
 
-  // 把云端错误翻译成「下一步该做什么」，避免访客只看到一串英文报错
+  // 把云端错误翻译成「下一步该做什么」，避免访客只看到一串英文报错。
+  // 规则顺序有讲究：先窄后宽，否则宽泛规则会把具体错误盖掉。
   function explain(detail) {
-    if (/does not exist|PGRST205|schema cache|relation|Could not find the table/i.test(detail)) {
+    // ① 约束没通过，必须排在「未建表」之前 —— 这句话里也含 relation 一词
+    //    （new row for relation "feedback" violates check constraint ...），
+    //    顺序反了会把「内容不合格式」误报成「还没建表」，把人引到错方向。
+    if (/23514|violates check constraint/i.test(detail)) {
+      return "（这条内容没通过后台的格式校验：多为关系/设备选项不在允许范围，或字数超出限制）";
+    }
+    // ② 表不存在。这里不再用裸 relation 做匹配，避免误伤上面那类报错。
+    if (/does not exist|PGRST205|schema cache|Could not find the table/i.test(detail)) {
       return "（看起来还没建表：请在 Supabase 的 SQL Editor 里执行指引中的建表 SQL）";
     }
     if (/column .* does not exist|PGRST204|42703/i.test(detail)) {
