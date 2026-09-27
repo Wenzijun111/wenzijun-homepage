@@ -228,15 +228,30 @@
     });
   }
 
-  // 把云端错误翻译成「下一步该做什么」，避免访客只看到一串英文报错
+  // 把云端错误翻译成「下一步该做什么」，避免访客只看到一串英文报错。
+  // 规则顺序有讲究：先窄后宽，否则宽泛规则会把具体错误盖掉。
   function cloudFail(label, detail) {
     var extra = "";
-    if (/column .* does not exist|PGRST204|42703/i.test(detail)) {
-      // 表在，但列名对不上（多半是旧表 / 模板表占位，建表 SQL 被 if not exists 跳过了）
+    // ① 约束没通过，必须排在「未建表」之前 —— 这句话里也含 relation 一词
+    //    （new row for relation "messages" violates check constraint ...），
+    //    顺序反了会把「内容不合格式」误报成「还没建表」，把人引到错方向。
+    if (/23514|violates check constraint/i.test(detail)) {
+      extra = "（这条留言没通过后台的格式校验：多是昵称 / 正文长度超出限制）";
+    // ② 列名对不上，必须排在「未建表」之前 —— PostgREST 的原话
+    //    （Could not find the 'nickname' column of 'messages' in the schema cache）里含 schema cache，
+    //    顺序反了会被下一条「未建表」抢走。多半是旧表 / 模板表占位，建表 SQL 被 if not exists 跳过了。
+    //    另外 cloudError() 只拼 HTTP 状态与 message、不带 PGRST 错误码，故这里必须认措辞（Could not find the ... column）。
+    } else if (/column .* does not exist|Could not find the .* column|PGRST204|42703/i.test(detail)) {
       extra = "（messages 表结构对不上：表里没有 nickname / body 列——旧表请先 drop 再执行指引里的建表 SQL）";
-    } else if (/does not exist|PGRST205|schema cache|relation|Could not find the table/i.test(detail)) {
+    // ③ 表不存在。这里不再用裸 relation 做匹配 —— ① 与下面 ④ 的报错里都含 relation 一词。
+    } else if (/does not exist|PGRST205|schema cache|Could not find the table/i.test(detail)) {
       extra = "（看起来还没建表：请在 Supabase 的 SQL Editor 里执行指引中的建表 SQL）";
-    } else if (/Invalid API key|No API key|JWT|401/i.test(detail)) {
+    // ④ 表已建好但没给访客开读取。Postgres 的原话是「permission denied for relation messages」（401 · 42501），
+    //    含 relation 一词，旧规则会把这种「站点侧权限没开」误报成「key 无效」或「还没建表」，两种都会把人引到错方向。
+    } else if (/permission denied|42501|row-level security|violates row-level/i.test(detail)) {
+      extra = "（messages 表已建好，但没开放读取：请在 Supabase 的 SQL Editor 里执行指引中的「允许匿名读取」策略）";
+    // ⑤ 只有明确指向 key 的报错才提示核对 key：401 太宽泛（权限报错同样是 401），不再用它判定 key 无效。
+    } else if (/Invalid API key|No API key|JWT/i.test(detail)) {
       extra = "（anon key 看起来无效：请核对 Project Settings → API 里的 anon public）";
     } else if (/Failed to fetch|NetworkError|Load failed|ERR_/i.test(detail)) {
       extra = "（先确认网络能访问 Supabase 域名）";

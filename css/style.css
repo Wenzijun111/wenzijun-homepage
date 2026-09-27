@@ -161,7 +161,7 @@ html[data-theme="light"] {
 }
 
 html {
-  scroll-behavior: auto; /* V1 不加平滑滚动（V2 美化） */
+  scroll-behavior: auto; /* 未做平滑滚动：V1 起即为预留项，V3 仍未做（见 index.html 顶部历史注释） */
   scroll-padding-top: var(--nav-offset); /* 锚点跳转时目标内容下移，避开吸顶导航 */
 }
 
@@ -1799,6 +1799,18 @@ html[data-theme="light"] .card--magic {
   margin-bottom: 0.4rem;
 }
 
+/* ---------- 副页版本标记（轮33 · USR-44） ----------
+   journey / music / life 三个副页没有完整页脚，只在各自 outro 末尾标一行版本。
+   比 .footer__version 更轻：居中、弱化颜色，不与正文抢注意力。 */
+.page-ver {
+  margin: 1.6rem 0 0;
+  text-align: center;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  opacity: 0.85;
+}
+
 .footer__email {
   font-size: 0.95rem;
   margin-bottom: 1.2rem;
@@ -1950,6 +1962,27 @@ html[data-theme="light"] .card--magic {
   .nav-toggle {
     width: 2.75rem;
     height: 2.75rem;
+  }
+
+  /* 主题开关：与同排按钮一致的触控高度；宽度与滑块按原作 125×70 等比放大
+     （44 × 125/70 ≈ 78.6px；56 × 44/70 ≈ 35.2px） */
+  .theme-switch {
+    --sw-w: 4.9rem;
+    --sw-h: 2.75rem;
+    --sw-knob: 35px;
+  }
+}
+
+/* ---------- 桌面档触控目标：≥1101px 补 ≥44px（轮33 · USR-44） ----------
+   轮31b 那套只覆盖了 769~1100px 平板带，桌面档仍是原尺寸：1366×768 实测
+   .theme-switch__btn 66×37、.btn 80×37、.quick-btn 74×35（共 11 个），均低于 Apple HIG 建议的 44px。
+   桌面虽以鼠标为主，但触控笔记本 / 外接触屏同样落在此档，故补同一套规则（2.75rem = 44px）。
+   .nav-toggle 在 ≥1101px 已被折叠隐藏，无需处理。
+   顶栏内容最高者本就是已抬到 44px 的 .brand，故不改变顶栏高度与 --nav-offset。 */
+@media (min-width: 1101px) {
+  .btn,
+  .quick-btn {
+    min-height: 2.75rem;
   }
 
   /* 主题开关：与同排按钮一致的触控高度；宽度与滑块按原作 125×70 等比放大

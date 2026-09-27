@@ -92,12 +92,17 @@
     if (/23514|violates check constraint/i.test(detail)) {
       return "（这条内容没通过后台的格式校验：多为关系/设备选项不在允许范围，或字数超出限制）";
     }
-    // ② 表不存在。这里不再用裸 relation 做匹配，避免误伤上面那类报错。
+    // ② 列名对不上，必须排在「未建表」之前：PostgREST 的原话
+    //    （Could not find the 'content' column of 'feedback' in the schema cache）里含 schema cache，
+    //    顺序反了会被下一条抢走，把「列名不匹配」误报成「还没建表」。
+    //    另外 cloudError() 只拼了 HTTP 状态与 message、不带 PGRST 错误码，
+    //    所以这里必须认措辞（Could not find the ... column）；只认 PGRST204 会永不命中。
+    if (/column .* does not exist|Could not find the .* column|PGRST204|42703/i.test(detail)) {
+      return "（feedback 表的列名对不上：请核对指引里的建表 SQL）";
+    }
+    // ③ 表不存在。这里不再用裸 relation 做匹配，避免误伤上面那两类报错。
     if (/does not exist|PGRST205|schema cache|Could not find the table/i.test(detail)) {
       return "（看起来还没建表：请在 Supabase 的 SQL Editor 里执行指引中的建表 SQL）";
-    }
-    if (/column .* does not exist|PGRST204|42703/i.test(detail)) {
-      return "（feedback 表的列名对不上：请核对指引里的建表 SQL）";
     }
     if (/permission denied|42501|row-level security|violates row-level/i.test(detail)) {
       return "（feedback 表的写入权限没打开：请核对指引里的 RLS 策略与 grant 语句）";
