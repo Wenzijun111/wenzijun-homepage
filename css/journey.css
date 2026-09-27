@@ -1,0 +1,432 @@
+/* ============================================================
+   副页面 · 我的计科四年探索之旅（轮19 / USR-30）
+   ------------------------------------------------------------
+   入口：主页面 #timeline 板块「我的计科四年探索之旅✨」下的圆形「穿越」按钮
+         （副页面 journey.html 不在主线导航内，主线也没有任何其他入口指向本页）
+   出口：本页顶部吸顶条与结尾区的「返回主线」按钮 → index.html#timeline（各 1 处，共 2 处）
+   结构：① 视频（上方一句引子） → ② 四年阶段畅想（大一 / 大二 / 大三 / 大四） → ③ 结尾短句
+   基调：与主线共用同一套 CSS 变量（深 / 亮主题自动跟随，无独立开关）；
+         「探索感 / 时间穿越感」全部由 CSS 关键帧 + IntersectionObserver 渐显实现，
+         零依赖、零构建、零第三方素材。
+   ============================================================ */
+
+/* ---------- 页面骨架 ---------- */
+.jbody {
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* 顶部吸顶条：本页唯一的常驻控件 = 「返回主线」 */
+.jbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.7rem 1.25rem;
+  background: var(--color-header-bg);
+  border-bottom: 1px solid var(--color-header-border);
+  -webkit-backdrop-filter: blur(var(--header-blur));
+  backdrop-filter: blur(var(--header-blur));
+}
+
+.jbar__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex: none;
+  /* 触控目标：可点面积抬到 44px（Apple HIG 建议值；WCAG 2.2 AA 最低 24px 本已达标）。
+     按钮内容由 align-items 居中，故文字位置不变，仅吸顶条随之高 3.5px */
+  min-height: 2.75rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.jbar__back:hover,
+.jbar__back:focus-visible {
+  border-color: var(--color-accent);
+  background: var(--color-surface-2);
+  transform: translateX(-2px);
+}
+
+.jbar__arrow {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* 穿越进度：吸顶条下沿一道随时间前进的光带（宽度由滚动进度驱动，见 js/journey.js） */
+.jprogress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+/* 「穿越」入场：从主页面跳进来时先铺一层柔光，0.9s 内散开（失败态 = 默认不可见） */
+.jwarp {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 45%, var(--color-glow) 0%, transparent 62%),
+    var(--color-bg);
+  animation: journey-warp 0.9s ease-out;
+}
+
+@keyframes journey-warp {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---------- 区块骨架（一屏一站：视频 → 四年阶段 → 结尾） ---------- */
+.jsec {
+  padding: 4.5rem 1.25rem;
+}
+
+.jsec__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.jsec__head {
+  margin-bottom: 2.2rem;
+}
+
+.jsec__step {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-accent-strong);
+}
+
+.jsec__title {
+  margin: 0 0 0.8rem;
+  font-size: clamp(1.5rem, 4.4vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.jsec__lead {
+  max-width: 48rem;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--color-text-muted);
+}
+
+/* 区块底色交替：与主线 section / section--alt 的层次逻辑一致 */
+.jsec--video {
+  background: var(--color-bg-alt);
+}
+
+.jsec--stages {
+  background: var(--color-bg);
+}
+
+.jsec--outro {
+  background: var(--color-bg-alt);
+  text-align: center;
+}
+
+/* ---------- ① 视频 ---------- */
+.jvideo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 0;
+}
+
+/* 视频上方的一句引子（用户指定文案：AI说，我的未来是这样？） */
+.jvideo__say {
+  margin: 0 0 1.5rem;
+  font-size: clamp(1.05rem, 2.6vw, 1.25rem);
+  font-weight: 500;
+  line-height: 1.6;
+  text-align: center;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+
+/* 「时间舱」外框：连播画面之外的一圈柔光，播放时描边转为强调色 */
+.jvideo__frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: radial-gradient(circle at 50% 50%, var(--color-surface-2) 0%, transparent 72%);
+  transition: border-color 0.3s ease;
+}
+
+.jvideo__frame.is-playing {
+  border-color: var(--color-accent);
+}
+
+/* 竖屏视频（720×1280）：只给上下限，等比缩放，不裁切不变形 */
+.jvideo__el {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(24rem, 78vw);
+  max-height: 68vh;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+/* 视频元信息行已按用户指示删除（视频下方不再有任何说明文字） */
+
+/* ---------- ② 四年阶段畅想 ---------- */
+.jstages {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 每一阶段 = 左侧时间刻度轨 + 右侧正文（窄屏收窄刻度列） */
+.jstage {
+  position: relative;
+  display: grid;
+  grid-template-columns: 4.6rem 1fr;
+  gap: 1.2rem;
+  padding-bottom: 2.4rem;
+}
+
+.jstage:last-child {
+  padding-bottom: 0;
+}
+
+.jstage__rail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.35rem;
+}
+
+/* 刻度纵线：贯通到下一阶段（最后一段收在节点处） */
+.jstage__rail::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: -2.4rem;
+  width: 1px;
+  background: var(--color-border);
+}
+
+.jstage:last-child .jstage__rail::before {
+  bottom: 2.4rem;
+}
+
+.jstage__dot {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  border: 3px solid var(--color-bg);
+  border-radius: var(--radius-circle);
+  background: var(--color-accent);
+}
+
+.jstage__year {
+  position: relative;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+}
+
+.jstage__body {
+  min-width: 0;
+}
+
+/* 阶段导语：用户原文中每个阶段单独成行的短句，独立成段并提亮一档 */
+.jstage__lead {
+  margin: 0 0 0.7rem;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.85;
+  color: var(--color-text);
+}
+
+.jstage__title {
+  margin: 0 0 0.85rem;
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--color-accent);
+  font-size: clamp(1.15rem, 3.2vw, 1.45rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.jstage__text {
+  margin: 0 0 0.9rem;
+  font-size: 0.99rem;
+  line-height: 1.95;
+  color: var(--color-text-muted);
+}
+
+.jstage__text:last-child {
+  margin-bottom: 0;
+}
+
+/* 四级标识色（轮19 新增变量）：只作用于阶段节点与标题左描边，不进入正文文字层级 */
+.jstage[data-grade="1"] .jstage__dot {
+  background-color: var(--grade-1);
+}
+
+.jstage[data-grade="1"] .jstage__title {
+  border-left-color: var(--grade-1);
+}
+
+.jstage[data-grade="2"] .jstage__dot {
+  background-color: var(--grade-2);
+}
+
+.jstage[data-grade="2"] .jstage__title {
+  border-left-color: var(--grade-2);
+}
+
+.jstage[data-grade="3"] .jstage__dot {
+  background-color: var(--grade-3);
+}
+
+.jstage[data-grade="3"] .jstage__title {
+  border-left-color: var(--grade-3);
+}
+
+.jstage[data-grade="4"] .jstage__dot {
+  background-color: var(--grade-4);
+}
+
+.jstage[data-grade="4"] .jstage__title {
+  border-left-color: var(--grade-4);
+}
+
+/* ---------- ③ 结尾短句 ---------- */
+.joutro {
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+.joutro__mark {
+  margin: 0 0 1.2rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-accent-strong);
+}
+
+.joutro__text {
+  margin: 0 0 2.2rem;
+  font-size: clamp(1.25rem, 3.6vw, 1.9rem);
+  font-weight: 700;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+}
+
+/* 结尾光带：一道光束缓慢扫过，收束「穿越」意象 */
+.joutro__beam {
+  position: relative;
+  max-width: 26rem;
+  height: 1px;
+  margin: 0 auto 2.2rem;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.joutro__beam::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 30%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--color-accent-strong), transparent);
+  animation: journey-beam 3.4s ease-in-out infinite;
+}
+
+@keyframes journey-beam {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  100% {
+    transform: translateX(440%);
+  }
+}
+
+.joutro__back {
+  margin: 0;
+}
+
+/* 页脚说明已按用户指示整块删除（页面以结尾短句收束） */
+
+/* ---------- 滚动渐显（仅 JS 可用时生效：脚本失败则内容全部直接可见） ---------- */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.js [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- 窄屏 ---------- */
+@media (max-width: 768px) {
+  .jsec {
+    padding: 3.2rem 1.25rem;
+  }
+
+  /* 阶段刻度列收窄，正文获得更多宽度 */
+  .jstage {
+    grid-template-columns: 3.4rem 1fr;
+    gap: 0.9rem;
+  }
+
+  .jvideo__el {
+    max-width: min(20rem, 84vw);
+  }
+}
+
+/* ---------- 降低动态效果：光带 / 入场柔光 / 渐显全部停用，内容与可点性不减 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .jwarp {
+    animation: none;
+  }
+
+  .joutro__beam::after {
+    animation: none;
+  }
+
+  .js [data-reveal],
+  .js [data-reveal].is-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

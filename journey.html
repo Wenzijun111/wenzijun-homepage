@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="我的计科四年探索之旅：一段从大一萌新到大四绽放的成长畅想（成长短片 + 四年阶段介绍 + 结尾短句）。">
+  <title>我的计科四年探索之旅✨ · 温梓君</title>
+  <!-- Web Font：与主页面同一套（离线时回退系统字体） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <!-- 主题首帧：与主页面共用 localStorage 的 site-theme 一个键，从主线「穿越」过来不闪色；
+       副页面不设独立主题开关，主题始终跟随主线的当前选择 -->
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem("site-theme") === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      } catch (e) {
+        /* 隐私模式 / 存储被禁用：保持默认深色 */
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/journey.css">
+</head>
+<body class="jbody">
+
+  <!-- 「穿越」入场柔光（纯装饰层）：动画失败时默认不可见，不会遮挡内容 -->
+  <div class="jwarp" aria-hidden="true"></div>
+
+  <!-- ========== 顶部吸顶条 ==========
+       本页不在主线导航内，也没有任何指向主线其他板块的链接；
+       唯一出口 = 这里的「返回主线」按钮（结尾区另有一处同款按钮）；
+       按用户指示：顶栏不再显示页面标题文字，只留返回按钮 + 进度条 -->
+  <div class="jbar">
+    <a class="jbar__back" href="index.html#timeline">
+      <span class="jbar__arrow" aria-hidden="true">←</span>返回主线
+    </a>
+    <span class="jprogress" id="jProgress" aria-hidden="true"></span>
+  </div>
+
+  <main class="jmain">
+
+    <!-- ========== ① 视频（先生成 / 先展示） ========== -->
+    <section class="jsec jsec--video" aria-label="四年成长短片">
+      <div class="jsec__inner">
+        <header class="jsec__head" data-reveal>
+          <p class="jsec__step">01 / 视频</p>
+          <h1 class="jsec__title">我的四年成长短片</h1>
+        </header>
+
+        <!-- 视频上方的一句引子（按用户指示新增） -->
+        <p class="jvideo__say" data-reveal>AI说，我的未来是这样？</p>
+
+        <figure class="jvideo" data-reveal>
+          <div class="jvideo__frame">
+            <video class="jvideo__el" controls preload="metadata" playsinline
+              poster="assets/journey/journey-poster.jpg"
+              aria-label="我的计科四年成长之路动画短片，30 秒，含音轨">
+              <source src="assets/journey/journey-4years.mp4" type="video/mp4">
+              你的浏览器不支持 HTML5 视频播放；可<a href="assets/journey/journey-4years.mp4">直接打开视频文件</a>观看。
+            </video>
+          </div>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ========== ② 四年阶段介绍（文案逐字取自用户提供的原文） ========== -->
+    <section class="jsec jsec--stages" aria-label="四年成长畅想">
+      <div class="jsec__inner">
+        <header class="jsec__head" data-reveal>
+          <p class="jsec__step">02 / 四年阶段</p>
+          <h2 class="jsec__title">四年成长畅想</h2>
+        </header>
+
+        <div class="jstages">
+
+          <article class="jstage" data-grade="1" data-reveal>
+            <div class="jstage__rail" aria-hidden="true">
+              <span class="jstage__dot"></span>
+              <span class="jstage__year">01</span>
+            </div>
+            <div class="jstage__body">
+              <h3 class="jstage__title">🟢大一｜萌新启程 · 扎根基础</h3>
+              <p class="jstage__lead">此时此刻的我，是刚踏入计算机世界的小小萌新！</p>
+              <p class="jstage__text">在双校4+0联合培养的全新模式里，我从零出发，认真夯实数理基础、计算机导论核心内容，勇敢上手尝试网页搭建与基础实操。面对陌生的专业知识偶尔会迷茫卡壳，但每一次成功运行、每一次页面成型，都是满满的成就感。</p>
+              <p class="jstage__text">这一年，我跟随天大严谨扎实的工科培养节奏，适应港理工双语创新的教学氛围，慢慢摸清计算机的底层逻辑，打开信息技术的广阔大门，悄悄种下热爱探索、敢于实践的科创小种子。</p>
+            </div>
+          </article>
+
+          <article class="jstage" data-grade="2" data-reveal>
+            <div class="jstage__rail" aria-hidden="true">
+              <span class="jstage__dot"></span>
+              <span class="jstage__year">02</span>
+            </div>
+            <div class="jstage__body">
+              <h3 class="jstage__title">🟡大二｜解锁新知 · 拓宽边界</h3>
+              <p class="jstage__lead">告别懵懂小白，正式开启专业进阶探索模式！</p>
+              <p class="jstage__text">我深度解锁数据结构、计算机组成、操作系统等核心专业课，承袭天大重基础、强实操的培养特色，同时沉浸式体验港理工学科交叉、产教融合的前沿教学。跳出书本局限，主动探索编程实践、小型科创项目，初探算法、智能技术等多元赛道。</p>
+              <p class="jstage__text">遇见代码Bug不再退缩，耐心调试、复盘纠错，依托深港双校优质资源，一点点拓宽自己的技术认知边界，找到属于自己的兴趣方向，稳步积累专业能力。</p>
+            </div>
+          </article>
+
+          <article class="jstage" data-grade="3" data-reveal>
+            <div class="jstage__rail" aria-hidden="true">
+              <span class="jstage__dot"></span>
+              <span class="jstage__year">03</span>
+            </div>
+            <div class="jstage__body">
+              <h3 class="jstage__title">🟠大三｜专注深耕 · 打磨实力</h3>
+              <p class="jstage__lead">历经两年积累沉淀，我告别泛学探索，开启精准深耕模式！</p>
+              <p class="jstage__text">依托两校双导师指导、跨学科创新的培养优势，我聚焦心仪的技术领域，深耕专业重难点。积极参与科创竞赛、课题项目与工程实践，把课本理论真正落地为实战成果，养成规范、严谨、创新的工程思维。</p>
+              <p class="jstage__text">兼具天大务实肯干的工科素养与港理工全球化创新视野，我主动触碰智能科技、前沿技术领域，锻炼独立解决复杂问题的能力，认真规划未来方向，慢慢积攒独当一面的底气与实力。</p>
+            </div>
+          </article>
+
+          <article class="jstage" data-grade="4" data-reveal>
+            <div class="jstage__rail" aria-hidden="true">
+              <span class="jstage__dot"></span>
+              <span class="jstage__year">04</span>
+            </div>
+            <div class="jstage__body">
+              <h3 class="jstage__title">🔵大四｜沉淀绽放 · 奔赴新程</h3>
+              <p class="jstage__lead">四年探索之旅圆满收官，我终于完成蜕变与成长！</p>
+              <p class="jstage__text">在天大的匠心培育与港理工的国际化浸润下，我搭建起完整、系统的计算机专业知识体系，兼具扎实的工程实操能力与前沿创新思维。从一无所知的萌新，成长为敢思考、敢实践、敢探索的计科学习者。</p>
+              <p class="jstage__text">带着双校赋予的学识、眼界与热忱，我褪去青涩、愈发从容。未来，我将继续保持探索初心，在信息技术的广阔天地中，奔赴山海，持续成长，解锁更多属于自己的可能！</p>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== ③ 结尾短句 ========== -->
+    <section class="jsec jsec--outro" aria-label="结尾短句">
+      <div class="jsec__inner">
+        <div class="joutro">
+          <p class="joutro__mark">03 / 结尾</p>
+          <p class="joutro__text" data-reveal>双校沃土育新知，四年探索赴前程，以热爱敲代码，以初心探未来✨</p>
+          <div class="joutro__beam" aria-hidden="true"></div>
+          <p class="joutro__back" data-reveal>
+            <a class="btn btn--primary" href="index.html#timeline">返回主线</a>
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="js/journey.js"></script>
+</body>
+</html>

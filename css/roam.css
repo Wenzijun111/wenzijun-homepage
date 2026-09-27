@@ -1,0 +1,1595 @@
+/* ============================================================
+   音乐探索 / 生活漫游（轮22）· 样式表
+   ------------------------------------------------------------
+   覆盖三处视图：
+     ① 主线 index.html 的两个新板块：「音乐探索 #music」（替换原「技能 & 兴趣 #skills」）
+        与「生活漫游 #life」（新增，紧跟在音乐板块之后）；
+     ② 独立副页面 music.html（音乐探索 · 声音漫游）：引言区 → 流派关系图谱 + 详情面板 → 收尾；
+     ③ 独立副页面 life.html（生活漫游）：引言区 → 八大兴趣翻牌卡 → 收尾。
+   设计口径：
+     - 与主线 / journey.css 共用同一套 CSS 变量，深 / 亮主题自动跟随，副页面无独立开关；
+     - 零依赖、零构建、零第三方素材：图标是内联 SVG，图谱是内联 SVG 连线 + HTML 节点按钮，
+       动画全部为 CSS 关键帧；两个副页面共用 js/roam.js（渐进增强，脚本失败内容照常可读）；
+     - 被样式引用的类名与 index.html / music.html / life.html / js/roam.js 一一对应。
+   ============================================================ */
+
+/* ============================================================
+   零、轮23 新增变量：玻璃卡面 / 背景装饰层 / 轨道遮罩
+   ------------------------------------------------------------
+   沿用主线的层次色，只单独取 alpha（与 --color-header-bg 同一做法）：
+   深色是「冷蓝灰打底」，亮色是「冷灰白打底」，两套都保证正文对比度不被削弱。
+   ============================================================ */
+:root {
+  --roam-glass-bg: rgba(28, 39, 53, 0.56);        /* 玻璃卡面：页面底透上来一点 */
+  --roam-glass-bg-2: rgba(41, 54, 69, 0.62);      /* 玻璃卡面：卡顶稍亮的一档 */
+  --roam-glass-border: rgba(127, 160, 196, 0.24); /* 玻璃描边 */
+  --roam-glass-glow: rgba(127, 160, 196, 0.34);   /* 悬浮时的柔光扩散 */
+  --roam-deco-line: rgba(127, 160, 196, 0.32);    /* 装饰线（声波 / 手写波） */
+  --roam-deco-line-soft: rgba(127, 160, 196, 0.16); /* 装饰线（乐谱线 / 唱片纹路） */
+  --roam-deco-node: rgba(127, 160, 196, 0.26);    /* 柔和发光节点 */
+  --roam-deco-dot: rgba(166, 193, 224, 0.42);     /* 音符圆点 */
+  --roam-deco-warm: rgba(211, 196, 159, 0.26);    /* 生活化装饰（砂金灰，取自 --about-hue-4） */
+  --roam-deco-warm-soft: rgba(211, 196, 159, 0.14);
+  --roam-glow-core: rgba(226, 205, 168, 0.22);    /* 生活页柔光斑：中心暖光（轮24） */
+  --roam-glow-warm: rgba(211, 196, 159, 0.10);    /* 生活页柔光斑：向外弥散的一圈 */
+  --roam-spark: rgba(226, 208, 172, 0.55);        /* 生活页细碎暖光点 */
+  --roam-rail-mask: rgba(15, 22, 32, 0.92);       /* 两端渐变遮罩：页面底的不透明版本 */
+}
+
+html[data-theme="light"] {
+  --roam-glass-bg: rgba(249, 251, 253, 0.56);
+  --roam-glass-bg-2: rgba(227, 232, 239, 0.62);
+  --roam-glass-border: rgba(51, 98, 143, 0.22);
+  --roam-glass-glow: rgba(51, 98, 143, 0.22);
+  --roam-deco-line: rgba(51, 98, 143, 0.26);
+  --roam-deco-line-soft: rgba(51, 98, 143, 0.13);
+  --roam-deco-node: rgba(51, 98, 143, 0.16);
+  --roam-deco-dot: rgba(51, 98, 143, 0.34);
+  --roam-deco-warm: rgba(130, 110, 73, 0.26);
+  --roam-deco-warm-soft: rgba(130, 110, 73, 0.14);
+  --roam-glow-core: rgba(186, 158, 108, 0.20);
+  --roam-glow-warm: rgba(150, 124, 82, 0.10);
+  --roam-spark: rgba(150, 122, 74, 0.50);
+  --roam-rail-mask: rgba(238, 241, 246, 0.94);
+}
+
+
+/* ============================================================
+   一、主线两个新板块
+   ============================================================ */
+
+/* 板块导语：比通用 .section__lead 略宽的阅读节奏（音乐 / 生活两个板块共用） */
+.roam__lead {
+  max-width: 54rem;
+  line-height: 1.95;
+}
+
+/* 入口区：导语下方居中排布「图标按钮 + 其下小字」 */
+.roam__gate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 2.6rem;
+}
+
+/* 圆形图标按钮：视觉语言沿用「我的计科四年探索之旅」的圆形入口，尺寸略小、内嵌线性图标 */
+.roam__portal {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 8.5rem;
+  height: 8.5rem;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-circle);
+  background: radial-gradient(circle at 50% 30%,
+    var(--color-surface-2) 0%, var(--color-surface) 58%, var(--color-bg-alt) 100%);
+  color: var(--color-accent-text);
+  box-shadow: var(--shadow-soft-md);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.roam__portal:hover,
+.roam__portal:focus-visible {
+  transform: scale(1.045);
+  border-color: var(--color-accent-strong);
+  box-shadow: var(--shadow-soft-lg);
+}
+
+/* 图标本体：压在光环层之上 */
+.roam__icon {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 2.9rem;
+  height: 2.9rem;
+}
+
+.roam__icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 双层扩散光环：向外扩张并淡出 */
+.roam__ring {
+  position: absolute;
+  inset: -1px;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-circle);
+  opacity: 0;
+  pointer-events: none;
+  animation: roam-ring 4.8s ease-out infinite;
+}
+
+.roam__ring--2 {
+  animation-delay: 2.4s;
+}
+
+/* 核心柔光：缓慢呼吸 */
+.roam__glow {
+  position: absolute;
+  inset: -40%;
+  border-radius: var(--radius-circle);
+  background: radial-gradient(circle, var(--color-glow) 0%, transparent 68%);
+  pointer-events: none;
+  animation: roam-glow 6s ease-in-out infinite;
+}
+
+@keyframes roam-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+
+@keyframes roam-glow {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(0.96);
+  }
+
+  50% {
+    opacity: 0.9;
+    transform: scale(1.04);
+  }
+}
+
+/* 图标按钮下方的小字（音乐板块：「声音漫游」） */
+.roam__caption {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: var(--color-text);
+}
+
+/* 板块交互提示文案（生活漫游：「点击卡片，解锁多元生活漫游」） */
+.roam__hint {
+  max-width: 46rem;
+  margin: 2.4rem 0 0;
+  padding-left: 0.9rem;
+  border-left: 3px solid var(--color-accent);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.9;
+  color: var(--color-text);
+}
+
+/* 板块联动文案（衔接音乐空间） */
+.roam__bridge {
+  max-width: 52rem;
+  margin: 1.6rem 0 0;
+  font-size: 1.02rem;
+  line-height: 1.95;
+  color: var(--color-text-muted);
+}
+
+/* 底部收尾 Slogan */
+.roam__slogan {
+  max-width: 52rem;
+  margin: 1.2rem 0 0;
+  font-size: 1.06rem;
+  font-weight: 600;
+  line-height: 1.95;
+  color: var(--color-text);
+}
+
+/* ============================================================
+   二、两个副页面的共用骨架（对应 music.html / life.html）
+   ============================================================ */
+
+.rbody {
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* 入场柔光：从主线点图标进来时先铺一层柔光，0.9s 内散开（失败态 = 默认不可见） */
+.rwarp {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 45%, var(--color-glow) 0%, var(--color-bg) 62%),
+    var(--color-bg);
+  animation: roam-warp 0.9s ease-out;
+}
+
+@keyframes roam-warp {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* 顶部吸顶条：副页面唯一的常驻控件 = 「返回主线」 + 滚动进度光带 */
+.rbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.7rem 1.25rem;
+  background: var(--color-header-bg);
+  border-bottom: 1px solid var(--color-header-border);
+  -webkit-backdrop-filter: blur(var(--header-blur));
+  backdrop-filter: blur(var(--header-blur));
+}
+
+.rbar__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex: none;
+  /* 触控目标：可点面积抬到 44px（Apple HIG 建议值；WCAG 2.2 AA 最低 24px 本已达标）。
+     按钮内容由 align-items 居中，故文字位置不变，仅吸顶条随之高 3.5px */
+  min-height: 2.75rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.rbar__back:hover,
+.rbar__back:focus-visible {
+  border-color: var(--color-accent);
+  background: var(--color-surface-2);
+  transform: translateX(-2px);
+}
+
+.rbar__arrow {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.rbar__progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+/* 副页面区块骨架：与主线 .section / .section--alt 的层次逻辑一致（一亮一暗交替） */
+.rsec {
+  padding: 4.5rem 1.25rem;
+  background: var(--color-bg);
+}
+
+.rsec--alt {
+  background: var(--color-bg-alt);
+}
+
+.rsec__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.rsec__head {
+  margin-bottom: 2.2rem;
+}
+
+.rstep {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-accent-strong);
+}
+
+.rtitle {
+  margin: 0 0 0.9rem;
+  font-size: clamp(1.6rem, 4.6vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.reyebrow {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: clamp(0.9rem, 2.6vw, 1.1rem);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-strong);
+  vertical-align: baseline;
+}
+
+.rlead {
+  max-width: 54rem;
+  margin: 0 0 0.85rem;
+  font-size: 1.06rem;
+  line-height: 1.95;
+  color: var(--color-text);
+}
+
+.rnote {
+  max-width: 54rem;
+  margin: 0.2rem 0 0;
+  font-size: 1rem;
+  line-height: 1.95;
+  color: var(--color-text-muted);
+}
+
+/* 交互提示行（图谱区 / 卡片区上方） */
+.rhint {
+  display: inline-block;
+  margin: 0 0 1.6rem;
+  padding-left: 0.9rem;
+  border-left: 3px solid var(--color-accent);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.8;
+  color: var(--color-text);
+}
+
+/* ============================================================
+   三、音乐探索页 · 流派关系图谱 + 详情面板（music.html）
+   ============================================================ */
+
+/* 图谱 + 面板：桌面左右分栏，窄屏上下堆叠 */
+.rmap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 22rem;
+  gap: 1.6rem;
+  align-items: start;
+}
+
+.rmap__stage {
+  min-width: 0;
+}
+
+/* 图谱画布：aspect-ratio 锁定与 SVG viewBox 相同的 1000 × 680 比例，
+   节点用百分比定位（坐标与 SVG 同一坐标系），因此缩放时连线与节点始终对齐 */
+.mmap {
+  position: relative;
+  aspect-ratio: 1000 / 680;
+  width: 100%;
+  margin: 0;
+}
+
+.mmap__lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* 关系线：默认低对比（只示意「互相影响」），相关时才提亮 */
+.mmap__line {
+  stroke: var(--color-border);
+  stroke-width: 1.2;
+  opacity: 0.65;
+  transition: stroke 0.25s ease, opacity 0.25s ease, stroke-width 0.25s ease;
+}
+
+.mmap__line.is-lit {
+  stroke: var(--color-accent-strong);
+  stroke-width: 2;
+  opacity: 1;
+}
+
+.mmap__line.is-dim {
+  opacity: 0.2;
+}
+
+/* 流派节点：HTML 按钮（可点、可聚焦、可键盘操作），用 --x / --y 变量定位到与 SVG 同一坐标系 */
+.mmap__node {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 5.2rem;
+  padding: 0.55rem 0.7rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.25s ease, background-color 0.25s ease, transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+/* 悬浮 / 聚焦：柔光放大（节点抬起，关联线由 JS 提亮） */
+.mmap__node:hover,
+.mmap__node:focus-visible {
+  border-color: var(--color-accent-strong);
+  background: var(--color-surface-2);
+  transform: translate(-50%, -50%) scale(1.06);
+  box-shadow: var(--shadow-soft-md);
+  z-index: 3;
+}
+
+/* 选中态：强调色描边 + 亮底 */
+.mmap__node[aria-pressed="true"] {
+  border-color: var(--color-accent-strong);
+  box-shadow: inset 0 0 0 1px var(--color-accent-strong), var(--shadow-soft-md);
+  z-index: 2;
+}
+
+.mmap__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-circle);
+  background: var(--color-accent);
+}
+
+.mmap__name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.mmap__en {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* 悬浮 / 聚焦时弹出的「极简气质短句」（纯 CSS 显隐：脚本失败也能看到） */
+.mmap__aura {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 15rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.6;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+}
+
+.mmap__node:hover .mmap__aura,
+.mmap__node:focus-visible .mmap__aura {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.2s ease, visibility 0s linear 0s;
+}
+
+/* 九大流派节点坐标（与 SVG viewBox 1000 × 680 同一坐标系：x = 圆心x/10 %，y = 圆心y/6.8 %）
+   布局：流行居中（「包容万象、吸收所有流派」），其余 8 个流派沿椭圆均匀环绕 */
+.mmap__node[data-genre="pop"] {
+  --x: 50%;
+  --y: 50%;
+}
+
+.mmap__node[data-genre="soundtrack"] {
+  --x: 50%;
+  --y: 18.38%;
+}
+
+.mmap__node[data-genre="electronic"] {
+  --x: 75.46%;
+  --y: 27.65%;
+}
+
+.mmap__node[data-genre="rock"] {
+  --x: 86%;
+  --y: 50%;
+}
+
+.mmap__node[data-genre="country"] {
+  --x: 75.46%;
+  --y: 72.35%;
+}
+
+.mmap__node[data-genre="multilingual"] {
+  --x: 50%;
+  --y: 81.62%;
+}
+
+.mmap__node[data-genre="rnb"] {
+  --x: 24.54%;
+  --y: 72.35%;
+}
+
+.mmap__node[data-genre="jazz"] {
+  --x: 14%;
+  --y: 50%;
+}
+
+.mmap__node[data-genre="classical"] {
+  --x: 24.54%;
+  --y: 27.65%;
+}
+
+/* 右侧详情面板 */
+.mpanel {
+  padding: 1.3rem 1.4rem 1.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.mpanel__step {
+  margin: 0 0 0.5rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent-strong);
+}
+
+/* 默认态（未选流派）：只留一句开启提示 */
+.mpanel__empty {
+  margin: 0;
+  font-size: 0.96rem;
+  line-height: 1.9;
+  color: var(--color-text-muted);
+}
+
+.mpanel__title {
+  margin: 0 0 1.1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.mpanel__en {
+  display: inline-block;
+  margin-left: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent-strong);
+}
+
+.mpanel__block + .mpanel__block {
+  margin-top: 1.1rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.mpanel__label {
+  margin: 0 0 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+}
+
+.mpanel__text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.9;
+  color: var(--color-text);
+}
+
+.mpanel__text--aura {
+  font-weight: 600;
+}
+
+/* 收藏曲目标签（轮25：内容逐字取自你提供的歌单；实线标签，长曲名可自动换行） */
+.mpanel__samples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.mpanel__sample {
+  max-width: 100%;
+  padding: 0.28rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* ============================================================
+   四、生活漫游页 · 八大兴趣翻牌卡（life.html）
+   ============================================================ */
+
+/* ---- 卡片轨道（轮23：悬浮式横向滚动）----
+   结构：.lrailwrap（定位 + 两端遮罩 + 左右按钮）> .lrail（横向滚动容器）> N 张 .lcard
+   手动控制：滚轮横滑 / 鼠标拖动 / 左右按钮 / 键盘 Tab 逐张聚焦（逻辑见 js/roam.js）；
+   触屏走浏览器原生横向滑动；两端遮罩只在「那一侧还有卡片」时淡入。 */
+.lrailwrap {
+  position: relative;
+}
+
+/* 两端渐变遮罩：先铺满，再由 JS（或默认态）决定淡入淡出 */
+.lrailwrap::before,
+.lrailwrap::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 1.1rem;
+  width: 3.4rem;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.lrailwrap::before {
+  left: 0;
+  background: linear-gradient(to right, var(--roam-rail-mask) 0%, transparent 100%);
+}
+
+.lrailwrap::after {
+  right: 0;
+  background: linear-gradient(to left, var(--roam-rail-mask) 0%, transparent 100%);
+}
+
+/* 不在起点 → 左侧出现「还能往回滑」；不在终点 → 右侧出现「后面还有」 */
+.lrailwrap:not(.is-at-start)::before,
+.lrailwrap:not(.is-at-end)::after {
+  opacity: 1;
+}
+
+/* 没有溢出（极端宽屏 / 卡片很少）时不显示任何提示 */
+.lrailwrap.is-static::before,
+.lrailwrap.is-static::after,
+.lrailwrap.is-static .lrail__nav {
+  display: none;
+}
+
+.lrail {
+  display: flex;
+  gap: 1.1rem;
+  /* 左右不留内边距：卡片吸格到 start 时 scrollLeft 正好是 0，起点状态才判得准 */
+  padding: 0.5rem 0 1.2rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+  -webkit-overflow-scrolling: touch;
+  cursor: grab;
+}
+
+.lrail:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+.lrail::-webkit-scrollbar {
+  height: 8px;
+}
+
+.lrail::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.lrail::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.lrail::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+
+/* 拖动中：关掉吸格 + 换抓手光标，避免「吸格」抢手感 */
+.lrail.is-dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* 左右按钮：玻璃小圆钮，一次推进一张卡 */
+.lrail__nav {
+  position: absolute;
+  /* 轮31b（USR-42）：触控目标抬到 44px（2.75rem，原 2.4rem = 38.4px，与 .rbar__back 同类问题）。
+     top 同步补偿 0.175rem（＝高度增量 0.35rem 的一半），中心落在原位、视觉不位移 */
+  top: calc(50% - 1.775rem);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid var(--roam-glass-border);
+  border-radius: var(--radius-circle);
+  background: var(--roam-glass-bg-2);
+  color: var(--color-text);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(var(--header-blur));
+  backdrop-filter: blur(var(--header-blur));
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.lrail__nav--prev {
+  left: -0.5rem;
+}
+
+.lrail__nav--next {
+  right: -0.5rem;
+}
+
+.lrail__nav:hover,
+.lrail__nav:focus-visible {
+  border-color: var(--color-accent);
+  color: var(--color-accent-strong);
+  transform: scale(1.08);
+}
+
+/* 卡片：定宽 + 吸附到起点 */
+.lcard {
+  flex: 0 0 clamp(15.5rem, 23vw, 18.5rem);
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+/* 悬浮 / 聚焦上浮：位移落在卡内按钮上。
+   （.lcard 本身带 data-reveal，渐显的 transform 与它同元素会更靠后生效，抢不过；翻面动画在更内层，也不受影响） */
+.lcard__flip {
+  transition: transform 0.3s ease;
+}
+
+.lcard:hover .lcard__flip,
+.lcard:focus-within .lcard__flip {
+  transform: translateY(-0.4rem);
+}
+
+/* 整张卡就是一个按钮：点击 / 回车 / 空格翻面（aria-pressed 表示当前是否在背面） */
+.lcard__flip {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  perspective: 1200px;
+}
+
+.lcard__inner {
+  position: relative;
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform 0.62s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.lcard__flip[aria-pressed="true"] .lcard__inner {
+  transform: rotateY(180deg);
+}
+
+/* 正 / 反两面共用同一网格单元 → 卡高自动取两面中较高的那一面，不会裁切内容 */
+.lcard__face {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7rem;
+  min-height: 17.5rem;
+  padding: 1.4rem 1.35rem 1.5rem;
+  border: 1px solid var(--roam-glass-border);
+  border-radius: var(--radius-sm);
+  background: var(--roam-glass-bg);
+  -webkit-backdrop-filter: blur(14px) saturate(1.25);
+  backdrop-filter: blur(14px) saturate(1.25);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.lcard__face--front {
+  background: linear-gradient(160deg, var(--roam-glass-bg-2) 0%, var(--roam-glass-bg) 62%);
+}
+
+.lcard__face--back {
+  transform: rotateY(180deg);
+  background: var(--roam-glass-bg);
+}
+
+.lcard__flip:hover .lcard__face,
+.lcard__flip:focus-visible .lcard__face {
+  border-color: var(--color-accent);
+  box-shadow: 0 16px 38px var(--roam-glass-glow), var(--shadow-soft-md);
+}
+
+/* ---- 正面：图标 + 名称 + 标签 + 正面短句 ---- */
+.lcard__emoji {
+  font-size: 1.7rem;
+  line-height: 1;
+  /* 轮24：小图标超慢速微明暗切换（八张按序错开，观感上几乎察觉不到在动） */
+  animation: lcard-icon 30s ease-in-out infinite;
+}
+
+.lcard:nth-child(2n) .lcard__emoji {
+  animation-duration: 36s;
+  animation-delay: -10s;
+}
+
+.lcard:nth-child(3n) .lcard__emoji {
+  animation-duration: 42s;
+  animation-delay: -19s;
+}
+
+@keyframes lcard-icon {
+  0%,
+  100% {
+    opacity: 0.76;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.lcard__name {
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.lcard__tags {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-accent-strong);
+}
+
+.lcard__line {
+  margin-top: auto;
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.8;
+  color: var(--color-text);
+}
+
+/* 「点击翻面」小提示 */
+.lcard__cue {
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--color-border);
+  width: 100%;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+}
+
+/* ---- 背面：名称 + 简介文案 + 分割线 + 我的漫游清单（轮26：真实清单） ---- */
+.lcard__back-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.lcard__desc {
+  font-size: 0.9rem;
+  line-height: 1.92;
+  color: var(--color-text-muted);
+}
+
+/* 简介文案与示例区域之间的分割线 */
+.lcard__rule {
+  width: 100%;
+  height: 1px;
+  margin: 0.15rem 0 0.1rem;
+  background: var(--color-border);
+}
+
+.lcard__sample-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+}
+
+.lcard__samples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.lcard__sample {
+  max-width: 100%;
+  padding: 0.28rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* 整句漫游注记（轮26：清单里带句读的那一条，不切成标签） */
+.lcard__note {
+  width: 100%;
+  font-size: 0.82rem;
+  line-height: 1.75;
+  color: var(--color-text-muted);
+}
+
+/* ============================================================
+   五、收尾区（副页面底部）
+   ============================================================ */
+
+.routro {
+  max-width: 48rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.rclosing {
+  margin: 0 0 1.9rem;
+  font-size: clamp(1.05rem, 3vw, 1.5rem);
+  font-weight: 700;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+}
+
+.ractions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  justify-content: center;
+}
+
+/* ============================================================
+   六、滚动渐显（仅 JS 可用时生效：脚本失败则内容全部直接可见）
+   ============================================================ */
+
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.js [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ============================================================
+   八、窄屏：图谱改列表、面板与卡片单栏
+   ============================================================ */
+
+@media (max-width: 1024px) {
+  .rmap {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.4rem;
+  }
+
+  /* 窄屏下环形布局会把节点挤成细条，故整体改为「列表式」：
+     节点按 flex 换行排布、连线隐藏，信息与可点性完全一致 */
+  .mmap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    aspect-ratio: auto;
+  }
+
+  .mmap__lines {
+    display: none;
+  }
+
+  .mmap__node {
+    position: static;
+    transform: none;
+    flex: 1 1 8.5rem;
+    min-width: 0;
+  }
+
+  .mmap__node:hover,
+  .mmap__node:focus-visible {
+    transform: none;
+  }
+
+  /* 列表式下「气质短句」不再绝对定位，改为跟随在节点内（默认仍隐藏） */
+  .mmap__aura {
+    position: static;
+    transform: none;
+    width: auto;
+    max-width: none;
+    margin-top: 0.35rem;
+    text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .rsec {
+    padding: 3.2rem 1.25rem;
+  }
+
+  .lrail {
+    gap: 0.9rem;
+  }
+
+  .lcard {
+    flex: 0 0 78vw;
+  }
+
+  .lrailwrap::before,
+  .lrailwrap::after {
+    width: 2.2rem;
+  }
+
+  /* 触屏直接横滑，左右按钮省掉（保持画面干净） */
+  .lrail__nav {
+    display: none;
+  }
+
+  .roam__portal {
+    width: 7.5rem;
+    height: 7.5rem;
+  }
+
+  .roam__icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+/* ============================================================
+   七、主题化背景装饰（轮23）：音乐页一套 / 生活漫游页一套
+   ------------------------------------------------------------
+   均为纯装饰层（aria-hidden、pointer-events: none），压在区块底色之上、正文之下；
+   线条一律用 currentColor，因此同一段 SVG 标记可以在多个区块重复出现（不需要 defs / id）。
+
+   音乐页（.rdeco--music）＝ 声波线 / 频谱柱 / 音符圆点 / 柔和发光节点 /
+                            淡化乐谱线 / 手写声波 / 唱片圆形纹理；
+   生活页（.rdeco--life，轮24 重做）＝ 暖调弥散柔光斑 / 随性虚线路径 / 细碎暖光点；
+   卡片正面小图标（.lcard__emoji）另有一组超慢速微明暗切换（规则写在第四节）。
+   全部随主题变量换色（深 / 亮自动跟随），并受 prefers-reduced-motion 统一降级。
+   ============================================================ */
+
+/* 承载装饰的区块：定位上下文 + 裁掉溢出（装饰一律不参与布局与换行） */
+.rsec--deco {
+  position: relative;
+  overflow: hidden;
+}
+
+.rsec--deco > .rsec__inner {
+  position: relative;
+  z-index: 1;
+}
+
+.rdeco {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--roam-deco-line);
+}
+
+/* 生活页整套换成砂金灰的暖调（虚线路径取 currentColor，柔光斑 / 光点取暖色变量） */
+.rdeco--life {
+  color: var(--roam-deco-warm);
+  --roam-deco-dot: var(--roam-deco-warm);
+  --roam-deco-line-soft: var(--roam-deco-warm-soft);
+}
+
+.rdeco__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.rdeco__svg path,
+.rdeco__svg circle,
+.rdeco__svg line {
+  fill: none;
+  stroke: currentColor;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ---- 淡化乐谱线（五线一组，轻轻斜置，两处错开） ---- */
+.rdeco__staff {
+  position: absolute;
+  display: block;
+  width: 24rem;
+  height: 3.5rem;
+  background-image: repeating-linear-gradient(to bottom,
+    var(--roam-deco-line-soft) 0 1px, transparent 1px 0.7rem);
+  opacity: 0.85;
+  transform: rotate(-4deg);
+}
+
+.rdeco__staff--a {
+  left: 4%;
+  top: 12%;
+}
+
+.rdeco__staff--b {
+  right: 6%;
+  bottom: 12%;
+  width: 17rem;
+  transform: rotate(5deg);
+}
+
+/* ---- 音符圆点（点阵，边缘用径向遮罩淡出） ---- */
+.rdeco__dots {
+  position: absolute;
+  display: block;
+  background-image: radial-gradient(var(--roam-deco-dot) 1.2px, transparent 1.4px);
+  background-size: 1.5rem 1.5rem;
+  opacity: 0.5;
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 72%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 72%);
+}
+
+.rdeco__dots--tr {
+  right: 5%;
+  top: 10%;
+  width: 19rem;
+  height: 13rem;
+}
+
+.rdeco__dots--bl {
+  left: 4%;
+  bottom: 8%;
+  width: 19rem;
+  height: 13rem;
+}
+
+.rdeco__dots--c {
+  left: 50%;
+  top: 50%;
+  width: 34rem;
+  height: 20rem;
+  transform: translate(-50%, -50%);
+}
+
+/* ---- 柔和发光节点（缓慢呼吸） ---- */
+.rdeco__node {
+  position: absolute;
+  display: block;
+  border-radius: var(--radius-circle);
+  background: radial-gradient(circle, var(--roam-deco-node) 0%, transparent 68%);
+  animation: rdeco-breathe 7s ease-in-out infinite;
+}
+
+.rdeco__node--a {
+  left: 7%;
+  top: 24%;
+  width: 9rem;
+  height: 9rem;
+}
+
+.rdeco__node--b {
+  right: 11%;
+  top: 16%;
+  width: 12rem;
+  height: 12rem;
+  animation-delay: 1.6s;
+}
+
+.rdeco__node--c {
+  left: 46%;
+  bottom: 6%;
+  width: 10rem;
+  height: 10rem;
+  animation-delay: 3.2s;
+}
+
+@keyframes rdeco-breathe {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.94);
+  }
+
+  50% {
+    opacity: 0.9;
+    transform: scale(1.06);
+  }
+}
+
+/* ---- 唱片圆形纹理（同心纹路的大圆，极慢自转） ---- */
+.rdeco__vinyl {
+  position: absolute;
+  display: block;
+  border: 1px solid var(--roam-deco-line-soft);
+  border-radius: var(--radius-circle);
+  background-image: repeating-radial-gradient(circle at center,
+    var(--roam-deco-line-soft) 0 1px, transparent 1px 0.62rem);
+  opacity: 0.9;
+  animation: rdeco-spin 120s linear infinite;
+}
+
+.rdeco__vinyl--a {
+  right: -6rem;
+  top: -5rem;
+  width: 22rem;
+  height: 22rem;
+}
+
+.rdeco__vinyl--b {
+  left: -5rem;
+  bottom: -6rem;
+  width: 16rem;
+  height: 16rem;
+  animation-direction: reverse;
+}
+
+@keyframes rdeco-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- 声波线（横贯全区的正弦曲线，缓慢左右漂移） ---- */
+.rdeco__wave {
+  stroke-width: 1.1;
+  opacity: 0.55;
+  animation: rdeco-drift 26s ease-in-out infinite alternate;
+}
+
+.rdeco__wave--2 {
+  opacity: 0.28;
+  animation-duration: 34s;
+  animation-direction: alternate-reverse;
+}
+
+@keyframes rdeco-drift {
+  from {
+    transform: translateX(-2.5%);
+  }
+
+  to {
+    transform: translateX(2.5%);
+  }
+}
+
+/* ---- 频谱柱（底部一组，逐根呼吸；stretch 后仍是「柱」的形状） ---- */
+.rdeco__bar {
+  fill: currentColor;
+  stroke: none;
+  opacity: 0.32;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: rdeco-bar 2.4s ease-in-out infinite;
+}
+
+.rdeco__bar:nth-of-type(2) {
+  animation-delay: 0.2s;
+}
+
+.rdeco__bar:nth-of-type(3) {
+  animation-delay: 0.45s;
+}
+
+.rdeco__bar:nth-of-type(4) {
+  animation-delay: 0.7s;
+}
+
+.rdeco__bar:nth-of-type(5) {
+  animation-delay: 0.3s;
+}
+
+.rdeco__bar:nth-of-type(6) {
+  animation-delay: 0.55s;
+}
+
+.rdeco__bar:nth-of-type(7) {
+  animation-delay: 0.85s;
+}
+
+.rdeco__bar:nth-of-type(8) {
+  animation-delay: 0.15s;
+}
+
+.rdeco__bar:nth-of-type(9) {
+  animation-delay: 0.6s;
+}
+
+.rdeco__bar:nth-of-type(10) {
+  animation-delay: 0.35s;
+}
+
+@keyframes rdeco-bar {
+  0%,
+  100% {
+    transform: scaleY(0.34);
+  }
+
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+/* ---- 手写声波：一笔画的不规则波形，用描边偏移「自己画出来」 ---- */
+.rdeco__hand {
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-dasharray: 2200;
+  stroke-dashoffset: 2200;
+  opacity: 0.5;
+  animation: rdeco-draw 9s ease-in-out infinite;
+}
+
+@keyframes rdeco-draw {
+  0% {
+    stroke-dashoffset: 2200;
+  }
+
+  55%,
+  85% {
+    stroke-dashoffset: 0;
+  }
+
+  100% {
+    stroke-dashoffset: -2200;
+  }
+}
+
+/* ---- 生活页专属（轮24）：暖调弥散柔光斑 / 随性虚线路径 / 细碎暖光点 ---- */
+
+/* 1）暖调弥散柔光斑：贴边分布的大面积柔光，慢速呼吸（明暗 + 缩放） */
+.rdeco__glow {
+  position: absolute;
+  display: block;
+  border-radius: var(--radius-circle);
+  background: radial-gradient(circle at 50% 50%,
+    var(--roam-glow-core) 0%, var(--roam-glow-warm) 44%, transparent 74%);
+  filter: blur(20px);
+  opacity: 0.5;
+  animation: rdeco-glow 26s ease-in-out infinite;
+}
+
+.rdeco__glow--a {
+  left: -6%;
+  top: 4%;
+  width: 26rem;
+  height: 20rem;
+}
+
+.rdeco__glow--b {
+  right: -8%;
+  bottom: -2%;
+  width: 30rem;
+  height: 24rem;
+  animation-duration: 32s;
+  animation-delay: -9s;
+}
+
+.rdeco__glow--c {
+  left: -5%;
+  top: 11%;
+  width: 24rem;
+  height: 19rem;
+  animation-duration: 29s;
+  animation-delay: -4s;
+}
+
+.rdeco__glow--d {
+  right: -7%;
+  bottom: 6%;
+  width: 28rem;
+  height: 22rem;
+  animation-duration: 34s;
+  animation-delay: -15s;
+}
+
+.rdeco__glow--e {
+  right: -4%;
+  top: 8%;
+  width: 25rem;
+  height: 20rem;
+  animation-duration: 31s;
+  animation-delay: -6s;
+}
+
+.rdeco__glow--f {
+  left: -6%;
+  bottom: 4%;
+  width: 27rem;
+  height: 21rem;
+  animation-duration: 36s;
+  animation-delay: -18s;
+}
+
+@keyframes rdeco-glow {
+  0%,
+  100% {
+    opacity: 0.38;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.68;
+    transform: scale(1.07);
+  }
+}
+
+/* 2）随性虚线路径：长短 / 弧度不一，贴边的一条平缓流动，散落的几条超慢微明暗 */
+.rdeco__svg path.rdeco__dash {
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.rdeco__svg path.rdeco__dash--flow {
+  stroke-dasharray: 3 10;
+  animation: rdeco-flow 58s linear infinite;
+}
+
+.rdeco__svg path.rdeco__dash--fade {
+  stroke-dasharray: 2 8;
+  opacity: 0.6;
+  animation: rdeco-fade 34s ease-in-out infinite;
+}
+
+.rdeco__svg path.rdeco__dash--fade:nth-of-type(2n) {
+  animation-delay: -13s;
+}
+
+@keyframes rdeco-flow {
+  from {
+    stroke-dashoffset: 0;
+  }
+
+  to {
+    stroke-dashoffset: -260;
+  }
+}
+
+@keyframes rdeco-fade {
+  0%,
+  100% {
+    opacity: 0.34;
+  }
+
+  50% {
+    opacity: 0.9;
+  }
+}
+
+/* 3）细碎暖光点：疏密均匀的微光小点，小幅慢速上下浮动 + 微明暗 */
+.rdeco__svg circle.rdeco__spark {
+  fill: var(--roam-spark);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: rdeco-spark 24s ease-in-out infinite alternate;
+}
+
+.rdeco__svg circle.rdeco__spark:nth-of-type(2n) {
+  animation-duration: 32s;
+  animation-delay: -7s;
+}
+
+.rdeco__svg circle.rdeco__spark:nth-of-type(3n) {
+  animation-duration: 40s;
+  animation-delay: -16s;
+}
+
+@keyframes rdeco-spark {
+  0% {
+    opacity: 0.42;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0.92;
+    transform: translateY(-4px);
+  }
+}
+
+/* ============================================================
+   九、降低动态效果：柔光 / 光环 / 翻牌过渡 / 渐显全部停用，
+   信息与可点性不减（翻牌仍可通过点击切换正反面）；
+   轮24 新增的柔光斑呼吸 / 虚线流动 / 光点浮动 / 图标微明暗也一并停用。
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .rwarp,
+  .roam__ring,
+  .roam__glow {
+    animation: none;
+  }
+
+  .lcard__inner {
+    transition: none;
+  }
+
+  .lcard__flip,
+  .lrail__nav {
+    transition: none;
+  }
+
+  .lcard:hover .lcard__flip,
+  .lcard:focus-within .lcard__flip {
+    transform: none;
+  }
+
+  .rdeco__node,
+  .rdeco__vinyl,
+  .rdeco__wave,
+  .rdeco__bar,
+  .rdeco__hand,
+  .rdeco__glow,
+  .rdeco__dash,
+  .rdeco__spark,
+  .lcard__emoji {
+    animation: none;
+  }
+
+  /* 轮24 的生活页三类元素在 CSS 靠后处重申过动画，且选择器带类型选择器 / :nth-of-type，
+     特异性更高；这里用同级别选择器再停一次，保证 reduce 下真的静止 */
+  .rdeco__svg path.rdeco__dash--flow,
+  .rdeco__svg path.rdeco__dash--fade,
+  .rdeco__svg path.rdeco__dash--fade:nth-of-type(2n),
+  .rdeco__svg circle.rdeco__spark,
+  .rdeco__svg circle.rdeco__spark:nth-of-type(2n),
+  .rdeco__svg circle.rdeco__spark:nth-of-type(3n) {
+    animation: none;
+  }
+
+  /* 手写声波直接停在「画完」的状态，不留半截线 */
+  .rdeco__hand {
+    stroke-dashoffset: 0;
+  }
+
+  .js [data-reveal],
+  .js [data-reveal].is-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

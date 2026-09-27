@@ -1,0 +1,2583 @@
+/* ============================================================
+   V1-MVP · 温梓君个人主页样式表
+   风格：硬朗块状直角 · 黑白高对比 · 深色优先 + 亮色切换
+   强调色：低饱和冷蓝 · 超大粗体标题 · 移动优先响应式
+   Web Font：Noto Sans SC（多字重区分标题与正文）
+   ============================================================ */
+
+/* ---------- 主题变量：深色（默认） ----------
+   冷蓝灰配色系统：底色为深蓝灰（不用纯黑），由沉到亮的层次依次为
+   横幅 < 页面 < 交替区块 < 卡片 < 次级面，越靠上层越亮，卡片与页面拉开明显层次。
+   强调色全站唯一：低饱和冷蓝。 */
+:root {
+  /* 层次底色（由沉到亮） */
+  --color-banner-bg: #0b1119;      /* 顶部横幅：比页面再沉一档 */
+  --color-bg: #0f1620;             /* 页面底：深蓝灰，非纯黑 */
+  --color-bg-alt: #141d29;         /* 交替区块底 */
+  --color-surface: #1c2735;        /* 卡片面：明显亮于页面底，形成层次 */
+  --color-surface-2: #293645;      /* 次级面：导航悬停/气泡/头像等更凸出层 */
+
+  /* 文字 */
+  --color-text: #eaf0f7;           /* 正文：冷白，非纯白 */
+  --color-text-muted: #a8b5c6;     /* 次要文字：冷灰蓝，强光可读 */
+
+  /* 描边与阴影颜色（颜色一律走变量，亮暗主题自动切换） */
+  --color-border: #2f3b4a;              /* 冷蓝灰描边 */
+  --color-shadow: rgba(5, 10, 18, 0.45);        /* 深阴影：最大浮起感的扩散层 */
+  --color-shadow-soft: rgba(5, 10, 18, 0.26);   /* 柔和阴影：主投影色 */
+  --color-shadow-soft-2: rgba(5, 10, 18, 0.16); /* 柔和阴影：扩散色 */
+
+  /* 强调色：低饱和冷蓝，全站唯一强调色 */
+  --color-accent: #7fa0c4;
+  --color-accent-strong: #a6c1e0;
+  --color-accent-text: #dbe7f6;    /* 横幅文字（压在深底上） */
+  --color-on-accent: #0e1621;      /* 强调色作底时的前景色 */
+
+  /* 「关于我」四卡色相（轮12）：四个低饱和色相，只用在卡片描边 / 图标 / 悬停铺底上，
+     不进入正文文字层级；亮色主题另有一套更深的取值，保证浅底与反色后可读。 */
+  --about-hue-1: #a6c1e0;          /* 冷蓝：与全站强调色同族 */
+  --about-hue-2: #a3c6c0;          /* 青灰 */
+  --about-hue-3: #bdb4d8;          /* 淡紫灰 */
+  --about-hue-4: #d3c49f;          /* 砂金灰 */
+
+  /* 「四年探索之旅」四级标识色（轮19 副页面 journey.html）：对应四个阶段的 emoji 色相
+     （🟢大一新绿 / 🟡大二暖黄 / 🟠大三橙 / 🔵大四冷蓝），只用于阶段节点圆点、
+     时间刻度与阶段小标题描边，不进入正文文字层级（与 --about-hue-* 同一策略）；
+     亮色主题另取更深一档，保证浅底上对比度可读。 */
+  --grade-1: #86bd93;              /* 大一：新绿 */
+  --grade-2: #d8c47f;              /* 大二：暖黄 */
+  --grade-3: #dda079;              /* 大三：橙 */
+  --grade-4: #93aee0;              /* 大四：冷蓝 */
+
+  /* 首屏光晕与遮罩（均取自冷蓝灰，不用纯黑） */
+  --color-glow: rgba(127, 160, 196, 0.30);      /* 首屏主光晕（第一层，略强但仍很弱） */
+  --color-glow-2: rgba(127, 160, 196, 0.12);    /* 首屏次光晕（第二层，更弱，另一侧） */
+  --color-glow-3: rgba(127, 160, 196, 0.16);    /* 首屏第三层光晕（底部补充层，轮8 流动背景用） */
+  --color-overlay-strong: rgba(7, 12, 19, 0.55); /* 遮罩：底部压暗，保证贴底文字对比度 */
+  --color-overlay-soft: rgba(7, 12, 19, 0.28);
+  --color-overlay-mid: rgba(7, 12, 19, 0.40);   /* 遮罩：中段过渡（轮9 改为「顶部轻、中段过渡、底部重」的渐变） */
+
+  /* 首屏弥散光块调色板（轮10，Canvas 程序化绘制）：均为 RGB 三元组，由 JS 读取，颜色仍统一走变量 */
+  /* 四色霓虹（青绿 → 冷蓝 → 紫 → 品红，色相依次相邻 → 混色自然产生中间色）：暗场里缓慢移动的弥散光块 */
+  --fluid-base: 15, 22, 32;        /* 流体底色（= 页面底色 #0f1620，保证与后续区块衔接） */
+  --fluid-b1: 46, 214, 200;        /* 光块 1（大块）青绿：主色位，参考站亮部实测就在这个色相带 */
+  --fluid-b2: 88, 146, 236;        /* 光块 2（大块）冷蓝：与全站强调色同族，做第二主色 */
+  --fluid-b3: 166, 104, 244;       /* 光块 3（小块）紫：点缀，少量即够 */
+  --fluid-b4: 230, 84, 198;        /* 光块 4（小块）品红：最荧光的一笔，只在角部与边缘出现 */
+  --fluid-veil: 4, 7, 12;          /* 压暗罩层：四角与暗部（近黑，不用纯黑） */
+  --fluid-vignette: 0.86;          /* 暗角强度刻度（曲线见 js/main.js；四角压暗继续保文字对比度） */
+  --fluid-blend: lighter;          /* 深色下用叠加混合 + 荧光增亮：暗场里长出发光体（越叠越亮） */
+
+  /* 吸顶导航（轮7 导航重设计）：默认完全透明，滚动后才出现「轻微背景 + 毛玻璃」层次 */
+  --color-header-bg: rgba(15, 22, 32, 0.72);     /* 滚动后导航底：页面底 #0f1620 的 72% */
+  --color-header-border: rgba(47, 59, 74, 0.72); /* 滚动后下沿细描边：比常规描边更轻 */
+
+  /* 柔和阴影标度：低透明度 + 大模糊半径 + 双层投影，避免生硬黑边 */
+  --shadow-soft-sm: 0 1px 2px var(--color-shadow-soft-2), 0 3px 10px var(--color-shadow-soft-2);
+  --shadow-soft-md: 0 2px 6px var(--color-shadow-soft), 0 10px 26px var(--color-shadow-soft-2);
+  --shadow-soft-lg: 0 6px 16px var(--color-shadow-soft), 0 20px 44px var(--color-shadow);
+
+  /* 圆角标度：轻圆角，保持硬朗块状基调（0 = 直角） */
+  --radius-none: 0;               /* 直角：横幅、区块、首屏徽标等大块面 */
+  --radius-xs: 2px;               /* 微圆角：小标签 */
+  --radius-sm: 4px;               /* 轻圆角：卡片、按钮、输入框、提示条 */
+  --radius-circle: 50%;           /* 正圆：时间轴节点、思考动画圆点 */
+
+  /* 尺寸类变量 */
+  --card-pad: 1.6rem;             /* 统一卡片内边距 */
+  --header-blur: 8px;             /* 滚动后导航毛玻璃模糊半径（轻微档，不抢内容） */
+  --nav-underline: 2px;           /* 当前导航项细下划线的厚度 */
+  --nav-offset: 4.65rem;          /* 吸顶导航实际高度（轮31 实测 73.78px，取 74.4px 略留余量）：锚点跳转目标向下偏移量 */
+  --banner-h: 2.53rem;            /* 原型横幅高度（轮8 实测 40.44px）：参与首屏满屏高度计算 */
+  --hero-chrome: calc(var(--nav-offset) + var(--banner-h) + 1rem); /* 首屏之上被占用的总高度：导航 + 横幅 + main 顶部留白 */
+}
+
+/* ---------- 主题变量：亮色 ----------
+   底色为冷灰白（不用死白）：卡片比页面更亮，交替区块/次级面/横幅比页面更沉；
+   强调色取更深的低饱和冷蓝，保证浅底上的对比度。 */
+html[data-theme="light"] {
+  --color-banner-bg: #e2e7ee;
+  --color-bg: #eef1f6;             /* 页面底：冷灰白，非死白 */
+  --color-bg-alt: #e5e9f0;
+  --color-surface: #f9fbfd;        /* 卡片面：亮于页面底，冷调近白 */
+  --color-surface-2: #e3e8ef;
+
+  --color-text: #121a24;           /* 正文：冷黑，非纯黑 */
+  --color-text-muted: #4c5a6b;
+
+  --color-border: #ccd5e0;
+  --color-shadow: rgba(23, 38, 60, 0.16);
+  --color-shadow-soft: rgba(23, 38, 60, 0.11);
+  --color-shadow-soft-2: rgba(23, 38, 60, 0.08);
+
+  --color-accent: #33628f;
+  --color-accent-strong: #264f78;
+  --color-accent-text: #1b3a5c;
+  --color-on-accent: #ffffff;
+
+  /* 「关于我」四卡色相（轮12 亮色）：同四个色相压深一档，浅底上有形，反色后文字仍可读 */
+  --about-hue-1: #264f78;          /* 冷蓝 */
+  --about-hue-2: #2f5c57;          /* 青灰 */
+  --about-hue-3: #4a4270;          /* 淡紫灰 */
+  --about-hue-4: #826e49;          /* 砂金灰（轮12c 调浅一档，原 #6b5a33 偏深；白字反色仍 ≥4.5:1） */
+
+  /* 「四年探索之旅」四级标识色（轮19 亮色）：同四个色相压深一档，浅底上有形、可读 */
+  --grade-1: #2f6b45;              /* 大一：新绿 */
+  --grade-2: #7a6520;              /* 大二：暖黄 */
+  --grade-3: #8a5230;              /* 大三：橙 */
+  --grade-4: #2f4f8f;              /* 大四：冷蓝 */
+
+  --color-glow: rgba(51, 98, 143, 0.18);
+  --color-glow-2: rgba(51, 98, 143, 0.08);
+  --color-glow-3: rgba(51, 98, 143, 0.10);
+  --color-overlay-strong: rgba(255, 255, 255, 0.62);
+  --color-overlay-soft: rgba(255, 255, 255, 0.26);
+  --color-overlay-mid: rgba(255, 255, 255, 0.34);
+
+  /* 首屏弥散光块调色板（亮色）：四色「云影」压在浅底上 —— 亮色下改用 multiply 混合，
+     否则在近白底上叠加发光会直接过曝成一片白、失去形体 */
+  --fluid-base: 238, 241, 246;     /* = 亮色页面底 #eef1f6 */
+  --fluid-b1: 116, 196, 190;       /* 光块 1（大块）青绿云影 */
+  --fluid-b2: 148, 176, 216;       /* 光块 2（大块）冷蓝云影 */
+  --fluid-b3: 178, 160, 214;       /* 光块 3（小块）紫云影 */
+  --fluid-b4: 208, 166, 198;       /* 光块 4（小块）品红云影 */
+  --fluid-veil: 255, 255, 255;     /* 罩层改「提亮」四角，浅色下保持通透 */
+  --fluid-vignette: 0.72;          /* 暗角强度刻度（曲线见 js/main.js） */
+  --fluid-blend: multiply;         /* 亮色下用乘性混合：颜色比底色深才压得住，不加荧光增亮 */
+
+  /* 吸顶导航（亮色）：同样默认透明，滚动后是冷灰白的半透明毛玻璃 */
+  --color-header-bg: rgba(238, 241, 246, 0.72);   /* 页面底 #eef1f6 的 72% */
+  --color-header-border: rgba(204, 213, 224, 0.8);
+}
+
+/* ---------- 基础 ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border-radius: var(--radius-none); /* 默认直角：大块面保持硬朗；组件按需用 --radius-xs / --radius-sm 覆盖 */
+}
+
+html {
+  scroll-behavior: auto; /* V1 不加平滑滚动（V2 美化） */
+  scroll-padding-top: var(--nav-offset); /* 锚点跳转时目标内容下移，避开吸顶导航 */
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* flex sticky-footer：内容少时页脚贴底，多时跟随滚动 */
+  font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Helvetica Neue", "PingFang SC", "Microsoft YaHei", "微软雅黑", sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.75; /* 调高正文行高，阅读更舒适 */
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden; /* 消除页面横向滚动 */
+}
+
+/* 移动端菜单展开时锁定页面滚动（仅影响内层，不影响横向 overflow 配置） */
+body.no-scroll {
+  overflow: hidden;
+  overflow-x: hidden;
+}
+
+/* main 弹性占满剩余高度，把 footer 推到视口底部 */
+main {
+  flex: 1 0 auto;
+  padding-top: 1rem; /* 顶部留白：避开吸顶导航的视觉边界，锚点首屏不被压顶 */
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* 防止 grid/flex 子项因内容过宽而撑破容器（配合 overflow-x:hidden 消除横向滚动） */
+.grid > *,
+.about__grid > *,
+.projects > *,
+.nav__list > * {
+  min-width: 0;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- 标题层级规范（h1 > h2 > h3 > 正文） ---------- */
+h1,
+h2,
+h3,
+h4 {
+  font-family: inherit;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* ---------- 顶部原型状态横幅 ---------- */
+.prototype-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  padding: 0.55rem 1rem;
+  background: var(--color-banner-bg);
+  color: var(--color-accent-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.prototype-banner__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--color-accent);
+  display: inline-block;
+  flex: none;
+}
+
+/* ---------- Header ---------- */
+/* 吸顶导航：默认完全透明（无底、无描边、无投影），首屏视觉不被压顶；
+   页面滚动后由 JS 加 .is-scrolled，才出现「半透明底 + 毛玻璃 + 下沿细描边」的轻微层次 */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  box-shadow: none;
+  transition: background-color 0.22s ease, border-color 0.22s ease,
+    box-shadow 0.22s ease, -webkit-backdrop-filter 0.22s ease,
+    backdrop-filter 0.22s ease;
+}
+
+.header.is-scrolled {
+  background: var(--color-header-bg);
+  border-bottom-color: var(--color-header-border);
+  -webkit-backdrop-filter: blur(var(--header-blur));
+  backdrop-filter: blur(var(--header-blur));
+}
+
+/* 不支持 backdrop-filter 的浏览器：退化为不透明底，滚动后仍有层次，不会与内容糊在一起 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .header.is-scrolled {
+    background: var(--color-bg);
+  }
+}
+
+.header__inner {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0.9rem 1.25rem;
+}
+
+/* 品牌区：徽标 + 字标组合（字标 = 中文名 + 细分隔竖线 + 小号拼音） */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex: none;
+  /* 触控目标：可点面积抬到 44px（Apple HIG 建议值；WCAG 2.2 AA 最低 24px 本已达标）
+     盒内内容居中，故仅增加可点高度，徽标与字标位置不变 */
+  min-height: 2.75rem;
+}
+
+/* 徽标：强调色描边 + 强调色字母的线条徽标，比实心色块更轻、更像品牌标识 */
+.brand__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent-strong);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+}
+
+.brand__name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* 字标右半段：细分隔竖线 + 小号拼音（网页装饰内容；.brand 已有 aria-label，读屏不重复朗读） */
+.brand__name::after {
+  content: "WEN ZIJUN";
+  margin-left: 0.7rem;
+  padding-left: 0.7rem;
+  border-left: 1px solid var(--color-border);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--color-text-muted);
+  vertical-align: 0.14em;
+}
+
+.nav {
+  flex: 1;
+}
+
+.nav__list {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  justify-content: center;
+}
+
+/* 导航项：去掉边框与色块，只留文字；当前项与悬停都用底部细下划线指示 */
+.nav__link {
+  position: relative;
+  display: inline-block;
+  /* 触控目标：可点高度抬到 44px（Apple HIG 建议值；WCAG 2.2 AA 最低 24px 本已达标）。
+     盒高变大后文字随之上移、绝对定位的下划线随之下移，故同步把 ::after 的 bottom
+     由 0.16rem 补偿到 0.4rem，保持「文字 — 下划线」间距与改动前一致 */
+  min-height: 2.75rem;
+  padding: 0.45rem 0.55rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted);
+  transition: color 0.18s ease;
+}
+
+/* 指示线：与文字左右对齐的细下划线，用 transform 展开（不占布局空间、不引起文字位移） */
+.nav__link::after {
+  content: "";
+  position: absolute;
+  left: 0.55rem;
+  right: 0.55rem;
+  bottom: 0.4rem;
+  height: var(--nav-underline);
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.22s ease, background-color 0.18s ease;
+}
+
+.nav__link:hover {
+  color: var(--color-text);
+}
+
+.nav__link:hover::after {
+  transform: scaleX(1);
+  background: color-mix(in srgb, var(--color-accent) 45%, transparent);
+}
+
+.nav__link.is-active {
+  color: var(--color-accent-strong);
+}
+
+.nav__link.is-active::after {
+  transform: scaleX(1);
+  background: var(--color-accent);
+}
+
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: none;
+}
+
+/* header 内的主按钮与图标按钮统一高度与圆角，形成整齐的一排控制项 */
+.header__actions .btn {
+  display: inline-flex;
+  align-items: center;
+  height: 2.3rem;
+  padding: 0 1.1rem;
+  font-size: 0.88rem;
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- 主题切换：Day/Night 天空开关（轮13） ----------
+   未选中＝夜（深灰夜空轨道 + 白月 + 星野闪烁 + 云）；选中＝昼（浅蓝轨道 + 金日 + 云朵弹入）。
+   视觉概念参考 @AshNolan_ 在 CodePen 的「A bunch of funky CSS3 Toggle Buttons」Day/Night Toggle
+   （该 Pen 未声明许可，故本站不引用其代码，按同一视觉概念自研重写）。
+   尺寸：原作为 125×70，此处等比缩小 0.526 倍以对齐顶栏控制项高度（2.3rem ≈ 36.8px），几何按比例取整。 */
+.theme-switch {
+  --sw-w: 4.1rem; /* 轨道宽（125 × 0.526 ≈ 65.6px） */
+  --sw-h: 2.3rem; /* 轨道高 ＝ 同排按钮高度（70 × 0.526 ≈ 36.8px） */
+  --sw-bd: 2.5px; /* 轨道描边（5 × 0.526 ≈ 2.6px） */
+  --sw-knob: 30px; /* 月亮 / 太阳直径（56 × 0.526 ≈ 29.5px） */
+  --sw-pad: 2px; /* 滑块与内壁的横向留白（4 × 0.526 ≈ 2.1px） */
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+}
+
+/* 复选框：视觉隐藏但保留可聚焦与键盘操作（原作 display:none 不可聚焦，
+   本站按既有可访问性基线改为 sr-only 式隐藏，焦点态由下方 :focus-visible 规则给到轨道） */
+.theme-switch__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.theme-switch__btn {
+  position: relative;
+  display: block;
+  width: var(--sw-w);
+  height: var(--sw-h);
+  border: var(--sw-bd) solid #1c1c1c; /* 夜色描边 */
+  border-radius: var(--sw-h);
+  background-color: #3c4145; /* 夜空 */
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 250ms ease-in, border-color 250ms ease-in;
+}
+
+/* 圆形滑块：未选中是月亮（白瓷面 + 米白描边），选中变太阳（暖黄 + 金黄描边） */
+.theme-switch__btn::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: var(--sw-pad);
+  width: var(--sw-knob);
+  height: var(--sw-knob);
+  border-radius: 50%;
+  background-color: #fff;
+  border: 2.5px solid #e3e3c7;
+  transform: translateY(-50%);
+  transition: left 250ms ease-in, background-color 250ms ease-in, border-color 250ms ease-in;
+}
+
+/* 云朵（选中＝白天时以 bounceIn 弹入，位于轨道左半段） */
+.theme-switch__btn::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 62%;
+  left: 20.5px;
+  z-index: 10;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  opacity: 0;
+  background-color: #fff;
+  box-shadow: #fff 0 0, #fff 1.5px 0, #fff 3px 0, #fff 4.5px 0, #fff 6px 0, #fff 7.5px 0,
+    #fff 8.5px 0, #fff 11px -0.5px 0 0.5px, #fff 8.5px -3.5px 0 -1px, #fff 3.5px -3.5px 0 0.5px,
+    #d3d3d3 0 0 0 2px, #d3d3d3 3px 0 0 2px, #d3d3d3 6px 0 0 2px, #d3d3d3 8.5px 0 0 2px,
+    #d3d3d3 11px -0.5px 0 2.5px, #d3d3d3 8.5px -3.5px 0 0.5px, #d3d3d3 3.5px -3.5px 0 2.5px;
+  transition: opacity 100ms ease-in;
+}
+
+/* 星野：2px 亮点 + 多点 box-shadow 组成，夜间 5s 缓慢明暗（原作 starry_star） */
+.theme-switch__feature {
+  display: block;
+  position: absolute;
+  top: 4.5px;
+  left: 52.5%;
+  z-index: 20;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background-color: #fff;
+  box-shadow: rgba(255, 255, 255, 0.1) 15.5px -1.5px 0 0, rgba(255, 255, 255, 0.1) 6.5px 5.5px 0 -0.5px,
+    #fff 20px 9.5px 0 0.5px, rgba(255, 255, 255, 0.1) 17px 18px 0 0, #fff 10.5px 12.5px 0 -1px,
+    rgba(255, 255, 255, 0.1) 2.5px 20px 0 0.5px;
+  animation: sw-starry-star 5s ease-in-out infinite;
+  transition: opacity 250ms ease-in;
+}
+
+/* 夜间云（贴月亮的另一朵）：白天时淡出并让位（原作同位置旋转 70deg 后随父级隐藏） */
+.theme-switch__feature::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: -1px;
+  left: -13px;
+  width: 9.5px;
+  height: 9.5px;
+  border-radius: 50%;
+  background-color: #fff;
+  border: 2.5px solid #e3e3c7;
+  box-shadow: #e3e3c7 -14.5px 0 0 -1.5px, #e3e3c7 -4px 12.5px 0 -1px;
+  transform-origin: -3px 130%;
+  transition: left 250ms ease-in, transform 250ms ease-in;
+}
+
+@keyframes sw-starry-star {
+  50% {
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: #fff 15.5px -1.5px 0 0, #fff 6.5px 5.5px 0 -0.5px,
+      rgba(255, 255, 255, 0.1) 20px 9.5px 0 0.5px, #fff 17px 18px 0 0,
+      rgba(255, 255, 255, 0.1) 10.5px 12.5px 0 -1px, #fff 2.5px 20px 0 0.5px;
+  }
+}
+
+@keyframes sw-bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  55% {
+    transform: scale(1.1);
+  }
+  75% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 白昼态：亮蓝轨道 + 太阳滑到右端 + 云朵弹入 + 星野熄灭。
+   :checked 是交互真值；html[data-theme="light"] 同时命中，保证首帧（head 内联脚本已设好属性、
+   而 end-of-body 的脚本尚未回填 checked）不会先显示夜色再跳成白昼 */
+.theme-switch__input:checked + .theme-switch__btn,
+html[data-theme="light"] .theme-switch__btn {
+  background-color: #9ee3fb;
+  border-color: #86c3d7;
+}
+
+.theme-switch__input:checked + .theme-switch__btn::before,
+html[data-theme="light"] .theme-switch__btn::before {
+  left: calc(100% - var(--sw-knob) - var(--sw-pad));
+  background-color: #ffdf6d;
+  border-color: #e1c348;
+}
+
+.theme-switch__input:checked + .theme-switch__btn::after,
+html[data-theme="light"] .theme-switch__btn::after {
+  opacity: 1;
+  animation: sw-bounce-in 0.6s ease-in-out 0.1s backwards;
+}
+
+.theme-switch__input:checked + .theme-switch__btn > .theme-switch__feature,
+html[data-theme="light"] .theme-switch__btn > .theme-switch__feature {
+  opacity: 0;
+  animation: none;
+  box-shadow: rgba(255, 255, 255, 0.1) 15.5px -1.5px 0 -2px, rgba(255, 255, 255, 0.1) 6.5px 5.5px 0 -2.5px,
+    #fff 20px 9.5px 0 -1.5px, rgba(255, 255, 255, 0.1) 17px 18px 0 -2px, #fff 10.5px 12.5px 0 -3px,
+    rgba(255, 255, 255, 0.1) 2.5px 20px 0 -1.5px;
+}
+
+.theme-switch__input:checked + .theme-switch__btn > .theme-switch__feature::before,
+html[data-theme="light"] .theme-switch__btn > .theme-switch__feature::before {
+  left: 13px;
+  transform: rotate(70deg);
+}
+
+/* 键盘焦点：描边画在轨道上（checkbox 已视觉隐藏，焦点需可见） */
+.theme-switch__input:focus-visible + .theme-switch__btn {
+  outline: 2px solid var(--color-accent-strong);
+  outline-offset: 2px;
+}
+
+/* 鼠标设备上的轻量悬停反馈（触屏不做 sticky hover） */
+@media (hover: hover) and (pointer: fine) {
+  .theme-switch__btn:hover {
+    filter: brightness(1.06);
+  }
+}
+
+/* 降低动效偏好：关闭星星无限闪烁与云朵弹入，只保留静态切换 */
+@media (prefers-reduced-motion: reduce) {
+  .theme-switch__btn,
+  .theme-switch__btn::before,
+  .theme-switch__btn::after,
+  .theme-switch__feature,
+  .theme-switch__feature::before,
+  .theme-switch__input:checked + .theme-switch__btn::after,
+  html[data-theme="light"] .theme-switch__btn::after {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* ============================================================
+   公共组件基类（V1.4 统一组件样式，消除重复）
+   ============================================================ */
+
+/* ---------- 卡片基类：统一背景 / 边框 / 内边距 / 轻圆角 / 柔和阴影 ---------- */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: var(--card-pad);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft-sm);
+}
+
+/* ---------- 标签基类：静态展示，无按钮样式 / 无 hover ---------- */
+.tag {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--color-accent-strong);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ---------- 按钮 ---------- */
+.btn {
+  display: inline-block;
+  padding: 0.7rem 1.3rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease,
+    transform 0.08s ease, box-shadow 0.15s ease;
+}
+
+/* 按钮按下 / 点击反馈：轻微下沉 + 减少亮度，松手回弹 */
+.btn:active {
+  transform: translateY(1px);
+  filter: brightness(0.94);
+}
+
+/* 键盘可访问焦点：清晰描边 */
+.btn:focus-visible,
+.quick-btn:focus-visible,
+.nav-toggle:focus-visible,
+.contact__email:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.btn--primary {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-soft-sm);
+}
+
+.btn--primary:hover {
+  background: var(--color-accent-strong);
+  border-color: var(--color-accent-strong);
+  box-shadow: var(--shadow-soft-md);
+}
+
+/* 按钮/交互控件焦点态：保证键盘与强光下可辨 */
+.btn:focus-visible,
+.quick-btn:focus-visible,
+.nav-toggle:focus-visible {
+  outline: 2px solid var(--color-accent-strong);
+  outline-offset: 2px;
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--color-text);
+}
+
+.btn--ghost:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent-strong);
+}
+
+/* ---------- 汉堡菜单按钮（移动端显示）：与主题切换按钮同一套轻量描边样式 ---------- */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  width: 2.3rem;
+  height: 2.3rem;
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+/* 三条横线跟随按钮文字色：hover 时一起变强调色 */
+.nav-toggle__bar {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: currentColor;
+}
+
+/* ---------- Hero 首屏 ---------- */
+/* 轮8：改为「全屏固定背景 + 贴底居中标识」的编排方式
+   （借鉴 onoera.com 首页的版面手法；未复制它的任何文字 / 图片 / 视频 / 品牌 / 源码） */
+.hero {
+  position: relative;
+  display: flex;
+  align-items: flex-end;              /* 内容整体贴底对齐 */
+  justify-content: center;
+  min-height: calc(100svh - var(--hero-chrome)); /* 首屏正好铺满一屏：视口 − 横幅 − 导航 − 顶部留白 */
+  border-bottom: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+/* 背景层 1/3（轮9）：Canvas 程序化流体 —— 首选背景层，由 js/main.js 逐帧绘制，零外部素材。
+   绘制分辨率只有视口的 1/4，再放大到满屏：既省算力，放大插值本身还带来柔和感（不会有硬边）。
+   与 .hero::before / ::after 同为 z-index:-1，DOM 中排在 ::before 之后 → 盖住回退渐变、
+   又位于 ::after（颗粒 + 遮罩）之下，所以颗粒与压暗仍然叠在流体之上。 */
+.hero__canvas {
+  position: fixed;                    /* 与回退层一致：视口固定，内容从它上方滑过 */
+  inset: 0;
+  z-index: -1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;               /* 纯装饰层，不吃鼠标事件 */
+}
+
+/* Canvas 生效时，被它盖住的回退渐变层不必再跑漂移动画（省电；无 JS 时仍照常极慢流动） */
+html.js-hero-canvas .hero::before {
+  animation: none;
+}
+
+/* 背景层 2/3（回退层）：禁用 JS 时的首屏背景 —— 全视口固定 + 冷蓝灰静态渐变（纯 CSS，零素材） */
+.hero::before {
+  content: "";
+  position: fixed;                    /* 固定层：背景不随内容滚动，内容从它上方滑过 */
+  inset: 0;
+  z-index: -1;                        /* 压在页面底色之上、正文内容之下 */
+  background:
+    radial-gradient(ellipse 70% 58% at 14% -14%, var(--color-glow), transparent 64%),
+    radial-gradient(ellipse 52% 46% at 90% 4%, var(--color-glow-2), transparent 66%),
+    radial-gradient(ellipse 76% 60% at 46% 118%, var(--color-glow-3), transparent 68%),
+    var(--color-bg);
+  animation: hero-aurora 48s ease-in-out infinite alternate; /* 极慢漂移：48s 一程并往返 */
+  transition: background-color 0.2s ease;                    /* 跟随主题切换 */
+  will-change: transform;
+}
+
+/* 背景层 3/3：均匀细底噪（SVG feTurbulence 纯代码生成，全分辨率逐像素）+ 分段遮罩
+   轮9：遮罩由「满屏平铺」改为「顶部轻 → 中段透明 → 底部重」，让光块在中上部透出，
+   同时把最重的一档压在贴底文字所在的下缘，继续保证文字对比度。
+   轮10：这是两层胶片颗粒里的第一层（全分辨率 1px 级）；js/main.js 每帧把它的
+   background-position 随机平移 1px，于是静态噪点变成「会呼吸的细颗粒」（成本只是一次合成）。
+   轮10c：这一层只保留「均匀底噪」的角色，强度由 0.075 降到 0.02 —— 它与底色无关、
+   会均匀抬亮纯黑底（轻微灰化），所以只让它出很小的力；颗粒「亮部更强」那部分改由
+   js/main.js 在画布内用 overlay 混合叠加的亮度加权颗粒承担（纯黑处 ≈0，黑底不被抬亮）。
+   注：不用 mix-blend-mode 的 DOM 层 —— Chromium 会把参与 CSS 混合的层按更低分辨率光栅化，
+   实测颗粒会块化（4px 相关 lag4 0.25~0.50，普通层只有 0.05），细颗粒无法用 CSS 混合实现。 */
+.hero::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)' opacity='0.02'/%3E%3C/svg%3E"),
+    linear-gradient(
+      180deg,
+      var(--color-overlay-soft) 0%,
+      transparent 30%,
+      var(--color-overlay-mid) 52%,
+      var(--color-overlay-strong) 100%
+    );
+  background-repeat: repeat, no-repeat;
+  background-size: 160px 160px, 100% 100%;
+  background-position: var(--grain-x, 0px) var(--grain-y, 0px), 0 0;  /* 轮10：逐帧随机平移 → 细颗粒会动 */
+  pointer-events: none;
+}
+
+/* 回退动效（仅无 JS 时可见）：位移 + 轻微缩放，幅度刻意很小，避免「一直在动」的观感 */
+@keyframes hero-aurora {
+  from {
+    transform: translate3d(-1.6%, -1.1%, 0) scale(1.08);
+  }
+  to {
+    transform: translate3d(1.7%, 1.3%, 0) scale(1.13);
+  }
+}
+
+.hero__inner {
+  position: relative;
+  z-index: 1;                         /* 压在固定背景层之上 */
+  width: 100%;                        /* 在 flex 容器里撑满可用宽度，再由 max-width 收敛 */
+  max-width: 1100px;
+  margin: 0 auto;
+  /* 贴底版式：上留白只用于避开导航，下留白给「贴底」留呼吸（对齐参考站 68px 量级；
+     轮8 实测后收紧：内容必须装得进一屏，否则「贴底」不成立） */
+  padding: 1.5rem 1.25rem 2.5rem;
+  text-align: center;
+}
+
+/* 首屏字母徽标：外框 + 内描边（第二层）+ 四角短标记，形成精致的 HUD 徽章感 */
+.hero__avatar {
+  position: relative;
+  width: 6.5rem;                      /* 轮8：为首屏「贴底满屏」收高度（120 → 104px） */
+  height: 6.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  margin-bottom: 1.25rem;
+}
+
+/* 第二层描边：外框内留白一圈的强调色细线 */
+.hero__avatar::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--color-accent);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* 四角短标记：延续硬朗直角，围出徽章轮廓 */
+.hero__avatar::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  opacity: 0.85;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--color-accent), var(--color-accent)),
+    linear-gradient(var(--color-accent), var(--color-accent)),
+    linear-gradient(var(--color-accent), var(--color-accent)),
+    linear-gradient(var(--color-accent), var(--color-accent)),
+    linear-gradient(var(--color-accent), var(--color-accent)),
+    linear-gradient(var(--color-accent), var(--color-accent)),
+    linear-gradient(var(--color-accent), var(--color-accent)),
+    linear-gradient(var(--color-accent), var(--color-accent));
+  background-repeat: no-repeat;
+  background-size:
+    12px 2px, 2px 12px,
+    12px 2px, 2px 12px,
+    12px 2px, 2px 12px,
+    12px 2px, 2px 12px;
+  background-position:
+    left top, left top,
+    right top, right top,
+    left bottom, left bottom,
+    right bottom, right bottom;
+}
+
+.hero__avatar-text {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-accent-strong);
+}
+
+.hero__eyebrow {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent-strong);
+  margin-bottom: 0.75rem;
+}
+
+/* 超大标题：首屏第一视觉中心 —— 更大字号 + 更紧字距 + 更密行高（字重仍守 700 规范） */
+.hero__title {
+  /* 贴底主视觉：超大字号；受屏宽（8vw）与屏高（15vh）双重约束，
+     取两者较小值 —— 高屏上尽量大，矮屏自动收敛，保证首屏文字不被挤出折线；
+     轮11 起整体下调约 12%（15vw/17vh → 13.5vw/15vh，上限 10.5rem → 9.3rem），让名字与副标题更和谐；
+     轮17 起标题由 3 字（温梓君）改为 8 字（温梓君的探索之境）—— 这行字必须【单行】放下，
+     按容器反推单行上限：内容宽 1060px ÷ 8 字 ÷ 0.95em/字 ≈ 139px；
+     首轮按「下调约 8%」取 7.7rem（123.2px），用户复核后要求「再小一点」，
+     故整体再 ×0.8：上限 6.75rem（108px，较 V2.16 −20%；1440 档墨迹 820.8 / 1060px，余量 239px）；
+     屏宽系数 10vw → 8vw、下限 1.9rem → 1.5rem（320 档 7.6 × 25.6 = 194.6 ≤ 280px，仍单行） */
+  font-size: clamp(1.5rem, min(8vw, 15vh), 6.75rem);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+  margin-bottom: 1rem;
+}
+
+/* 副标题：强调色 + 略收紧字距，与正文拉开层次 */
+.hero__tagline {
+  display: block;
+  font-size: clamp(1.35rem, 4.2vw, 2.1rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--color-accent);
+  margin-top: 0.4rem;
+}
+
+.hero__intro {
+  max-width: 58rem;                  /* 轮17：开场引言由 56 字增至 92 字 —— 行宽 46rem → 58rem，
+                                        让桌面 1440 / 1024 仍收在 2 行（58rem = 928px ≤ 内容宽 1060px），
+                                        以抵消标题字号下调带来的高度变化，保住首屏「一屏装完」 */
+  margin-inline: auto;               /* 贴底居中版式：说明文案随主视觉一起居中 */
+  font-size: 1.15rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1.25rem;
+}
+
+.hero__meta {
+  margin-bottom: 1.5rem;
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 0.45rem 0.9rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-accent-text);
+  letter-spacing: 0.02em;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;           /* 贴底居中版式：按钮组居中 */
+  gap: 0.8rem;
+}
+
+/* 首屏按钮：主按钮实心加重、次按钮强调色描边，两者明显分层 */
+.hero__actions .btn {
+  padding: 0.85rem 1.6rem;
+  font-size: 1rem;
+}
+
+.hero__actions .btn--primary {
+  box-shadow: var(--shadow-soft-md);
+}
+
+.hero__actions .btn--ghost {
+  background: transparent;
+  border-color: var(--color-accent);
+  color: var(--color-accent-strong);
+}
+
+.hero__actions .btn--ghost:hover {
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-strong);
+}
+
+/* 首屏入场：内容按顺序淡入上浮（一次性，不循环） */
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero__inner > * {
+  animation: hero-rise 0.72s cubic-bezier(0.22, 0.68, 0.35, 1) both;
+}
+
+.hero__inner > *:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.hero__inner > *:nth-child(2) {
+  animation-delay: 0.13s;
+}
+
+.hero__inner > *:nth-child(3) {
+  animation-delay: 0.21s;
+}
+
+.hero__inner > *:nth-child(4) {
+  animation-delay: 0.29s;
+}
+
+.hero__inner > *:nth-child(5) {
+  animation-delay: 0.37s;
+}
+
+.hero__inner > *:nth-child(6) {
+  animation-delay: 0.45s;
+}
+
+/* 尊重系统「减少动效」偏好：关闭入场动画，内容直接呈现 */
+@media (prefers-reduced-motion: reduce) {
+  .hero__inner > * {
+    animation: none;
+  }
+
+  /* 首屏背景的极慢漂移同样关闭，只保留静态渐变 */
+  .hero::before {
+    animation: none;
+  }
+
+  /* 导航高亮下划线不做展开动效，直接呈现 */
+  .nav__link::after {
+    transition: none;
+  }
+}
+
+/* ---------- 通用 Section ---------- */
+.section {
+  padding: 5.5rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  /* 轮8：显式给出不透明底色，遮挡首屏的固定背景层，避免它穿透到后续区块 */
+  background-color: var(--color-bg);
+}
+
+.section--alt {
+  background: var(--color-bg-alt);
+}
+
+.section__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.section__head {
+  margin-bottom: 3rem;
+  border-bottom: 3px solid var(--color-text);
+  padding-bottom: 1.2rem;
+}
+
+/* 大号中文主标题 + 小号英文副标题 */
+.section__title {
+  font-size: clamp(2rem, 6vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.section__eyebrow {
+  font-size: clamp(0.95rem, 2.6vw, 1.25rem);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-strong);
+}
+
+.section__lead {
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+  max-width: 52rem;
+  margin-bottom: 1.5rem;
+}
+
+/* 长段落拆分后的相邻段落间距（V1.2 内容信息层） */
+.section__lead + .section__lead {
+  margin-top: -0.7rem;
+}
+
+/* ---------- 关于我 ---------- */
+.about__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  /* 轮12b：四张卡文案行数不同，内容高度天然不等（移动单栏时 252.64 / 193.70，
+     平板两列时 226.77 / 193.70）→ 用户反馈的「格式不统一」。auto-rows 全部取 1fr
+     后，同一网格内的每一行等高（= 该视口下最高那张卡的自然高度），描边横竖比例随之
+     统一。桌面单行四卡的自然高度本来就相等（278.52），故 ≥1200px 观感零变化。 */
+  grid-auto-rows: 1fr;
+  /* 轮12：本区块自带独立层叠上下文，让卡片描边层（z-index:-1）刚好压在
+     「区块底色之上、卡片底色之下」。区块底色是不透明的，否则描边会被它整个盖住。 */
+  isolation: isolate;
+}
+
+/* 轮12：四张卡按序各取一个低饱和色相。色相只作用在描边 / 图标 / 悬停铺底三处，
+   标签文字沿用全站强调色 —— 避免四个色相同时进入文字层级，层级反而变乱。 */
+.about__grid > .about-card:nth-child(1) {
+  --about-accent: var(--about-hue-1);
+}
+
+.about__grid > .about-card:nth-child(2) {
+  --about-accent: var(--about-hue-2);
+}
+
+.about__grid > .about-card:nth-child(3) {
+  --about-accent: var(--about-hue-3);
+}
+
+.about__grid > .about-card:nth-child(4) {
+  --about-accent: var(--about-hue-4);
+}
+
+/* 轮12 悬停效果：默认态一圈「错位斜切描边」，悬停时描边转正对齐 + 强调色铺满整卡 + 文字反色。
+   视觉机制借鉴自公开的 CodePen 作品（原作者 MDJAmin），此处为站点自有实现，出处见 docs 致谢。 */
+.about-card {
+  position: relative;
+  transition: background-color 0.45s ease, border-color 0.45s ease;
+}
+
+/* 描边层：上下一对（比卡片窄 + 上下倾斜）与左右一对（比卡片高 + 左右倾斜）。
+   压在卡片底色之下 → 只在卡片之外露出，形成错位斜切框。 */
+.about-card::before,
+.about-card::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none; /* 纯装饰层，不吃鼠标事件 */
+  transition: top 0.45s ease, right 0.45s ease, bottom 0.45s ease, left 0.45s ease,
+    transform 0.45s ease;
+}
+
+.about-card::before {
+  top: -0.4rem;
+  right: 3rem;
+  bottom: -0.4rem;
+  left: 3rem;
+  border-top: 2px solid var(--about-accent);
+  border-bottom: 2px solid var(--about-accent);
+  transform: skewY(15deg);
+}
+
+.about-card::after {
+  top: 3.6rem;
+  right: -0.4rem;
+  bottom: 3.6rem;
+  left: -0.4rem;
+  border-left: 2px solid var(--about-accent);
+  border-right: 2px solid var(--about-accent);
+  transform: skew(15deg);
+}
+
+/* 图标块：纯装饰（HTML 内 aria-hidden），形状语言与站内一致（直角 + 描边） */
+.about-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  margin-bottom: 0.85rem;
+  color: var(--about-accent);
+  border: 1px solid var(--about-accent);
+  border-radius: var(--radius-xs);
+  transition: background-color 0.45s ease, border-color 0.45s ease, color 0.45s ease;
+}
+
+.about-card__icon svg {
+  display: block;
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+/* 关于我卡：基础样式由 .card 提供 */
+.about-card__label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent-strong);
+  margin-bottom: 0.7rem;
+  transition: color 0.45s ease;
+}
+
+.about-card__text {
+  font-size: 0.98rem;
+  color: var(--color-text-muted);
+  line-height: 1.65;
+  transition: color 0.45s ease;
+}
+
+.about-card__text + .about-card__text {
+  margin-top: 0.45rem;
+}
+
+/* 悬停态：只在「确实能用鼠标悬停」的设备上启用。触屏与键盘不触发，
+   但卡片内容在静态下本来就完整可读 —— 该效果是纯装饰，不承载信息。 */
+@media (hover: hover) and (pointer: fine) {
+  .about-card:hover {
+    background: var(--about-accent);
+    border-color: var(--about-accent);
+  }
+
+  /* 斜切描边转正 + 向卡片边缘收紧对位 */
+  .about-card:hover::before {
+    right: 2.4rem;
+    left: 2.4rem;
+    transform: skewY(0deg);
+  }
+
+  .about-card:hover::after {
+    top: 2.4rem;
+    bottom: 2.4rem;
+    transform: skew(0deg);
+  }
+
+  /* 图标块反相：色相铺满整卡后，图标块改用前景色作底、图形换回色相 */
+  .about-card:hover .about-card__icon {
+    background: var(--color-on-accent);
+    border-color: var(--color-on-accent);
+    color: var(--about-accent);
+  }
+
+  .about-card:hover .about-card__label,
+  .about-card:hover .about-card__text {
+    color: var(--color-on-accent);
+  }
+}
+
+/* 触屏态（轮27）：手机上不存在 hover，改为「按住时出现同款效果、松手还原」。
+   这里的 :active 与上面 @media (hover: hover) 的 :hover 逐项等价
+   （强调色铺满 + 斜切描边转正 + 图标反相 + 文字反色），过渡时长沿用卡片原有 0.45s。
+   cursor: pointer 只是让 iOS / Android 把卡片视作可点元素以触发 :active
+   （触屏不显示光标，不影响观感）；-webkit-tap-highlight-color 关掉系统高亮块，
+   避免按住时再叠一层半透明遮罩。电脑端（hover: hover）不受本块任何影响。
+   思路与第四节魔法卡的触屏处理（@media (hover: none)）一致：只在触屏上生效。 */
+@media (hover: none) {
+  .about-card {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .about-card:active {
+    background: var(--about-accent);
+    border-color: var(--about-accent);
+  }
+
+  .about-card:active::before {
+    right: 2.4rem;
+    left: 2.4rem;
+    transform: skewY(0deg);
+  }
+
+  .about-card:active::after {
+    top: 2.4rem;
+    bottom: 2.4rem;
+    transform: skew(0deg);
+  }
+
+  .about-card:active .about-card__icon {
+    background: var(--color-on-accent);
+    border-color: var(--color-on-accent);
+    color: var(--about-accent);
+  }
+
+  .about-card:active .about-card__label,
+  .about-card:active .about-card__text {
+    color: var(--color-on-accent);
+  }
+}
+
+/* 尊重系统「减少动效」偏好：悬停的状态变化保留（仍可辨认），只去掉过渡过程。
+   必须写在本节规则之后 —— 同优先级下，后出现的规则生效。 */
+@media (prefers-reduced-motion: reduce) {
+  .about-card,
+  .about-card::before,
+  .about-card::after,
+  .about-card__icon,
+  .about-card__label,
+  .about-card__text {
+    transition: none;
+  }
+}
+
+/* ---------- 我的计科四年探索之旅（轮19：原「学习轨迹」板块改为入口） ----------
+   本次改动（USR-30）：① 板块改名「我的计科四年探索之旅✨」；
+   ② 新增板块引言（文案由用户提供；排版复用 .section__lead，仅调整段间距与行高）；
+   ③ 引言下方新增圆形「穿越」按钮 → 点击进入独立副页面 journey.html
+      （副页面不在主线导航内，只能由本按钮进入，并由副页面内的「返回主线」按钮返回本板块）；
+   ④ 原 4 张时间轴卡（大一现阶段 / 大一剩余 / 大二 / 大学未来）按用户指示移除，
+      四年内容改由副页面承载（旧内容仍可在 git 历史与 docs/归档 中查到）。
+   按钮是全站唯一「正圆」交互控件（复用 --radius-circle）：视觉上做成一道时间通道 ——
+   双层光环向外扩散 + 核心柔光呼吸，纯 CSS 关键帧、零依赖、零素材、无 JS 参与。
+   prefers-reduced-motion 下动画全部停止，静态光环与描边仍在（信息与可点性不减）。 */
+.journey__intro {
+  line-height: 1.95;
+  margin-bottom: 2.8rem;
+}
+
+/* 入口区：引言下方居中排布圆形「穿越」按钮（用户指示：按钮下方不再有说明文字） */
+.journey__gate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+/* 圆形「穿越」按钮 */
+.journey__portal {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 9.5rem;
+  height: 9.5rem;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-circle);
+  background: radial-gradient(circle at 50% 30%,
+    var(--color-surface-2) 0%, var(--color-surface) 58%, var(--color-bg-alt) 100%);
+  color: var(--color-accent-text);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  padding-left: 0.16em;              /* 字距补偿：让「穿越」二字在圆内视觉居中 */
+  text-decoration: none;
+  box-shadow: var(--shadow-soft-md);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* 悬停 / 键盘聚焦：描边提亮 + 抬升一档阴影 + 轻微放大（动画只跑在子层，缩放不受冲突） */
+.journey__portal:hover,
+.journey__portal:focus-visible {
+  transform: scale(1.045);
+  border-color: var(--color-accent-strong);
+  box-shadow: var(--shadow-soft-lg);
+}
+
+/* 按钮文字：压在光环层之上 */
+.journey__portal-text {
+  position: relative;
+  z-index: 1;
+}
+
+/* 双层扩散光环：向外扩张并淡出，暗示「通道开启」 */
+.journey__ring {
+  position: absolute;
+  inset: -1px;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-circle);
+  opacity: 0;
+  pointer-events: none;
+  animation: journey-ring 4.8s ease-out infinite;
+}
+
+.journey__ring--2 {
+  animation-delay: 2.4s;
+}
+
+/* 核心柔光：缓慢呼吸，让圆盘有生命感（颜色取全站光晕变量） */
+.journey__glow {
+  position: absolute;
+  inset: -40%;
+  border-radius: var(--radius-circle);
+  background: radial-gradient(circle, var(--color-glow) 0%, transparent 68%);
+  pointer-events: none;
+  animation: journey-glow 6s ease-in-out infinite;
+}
+
+@keyframes journey-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+
+  70%,
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes journey-glow {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ---------- 项目 / 作品 ---------- */
+.projects {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 桌面多列，手机自动单列 */
+  gap: 1.25rem;
+}
+
+/* 项目卡：基础样式由 .card 提供 */
+.project-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.1rem;
+}
+
+/* 项目标签：基础样式由 .tag 提供；仅微调尺寸，静态展示 */
+.project-tag {
+  padding: 0.22rem 0.6rem;
+  font-size: 0.78rem;
+}
+
+.project-card__title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.7rem;
+}
+
+.project-card__desc {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  line-height: 1.65;
+  margin-bottom: 0.9rem;
+}
+
+.project-card__desc + .project-card__desc {
+  margin-top: -0.35rem;
+}
+
+.project-card__note {
+  font-size: 0.88rem;
+  color: var(--color-accent-strong);
+  font-weight: 600;
+}
+
+/* 轮21：原「观点随笔 Thoughts」板块（含 .thoughts / .thoughts__text / .thoughts__text + .thoughts__text
+   / .thoughts__ref / .card--magic.thoughts 共 5 组样式）已随板块整体删除，此处不再保留死样式。 */
+
+/* ---------- 魔法卡片（轮14 起；现仅「项目 / 作品」板块使用 —— 轮15 起「技能 & 兴趣」改用 Bento、
+   轮21 起原「观点随笔」板块已整体删除） ----------
+   出处：Magic UI「Magic Card」（组件页 magicui.design/docs/components/magic-card，
+   注册表 magicui.design/r/magic-card.json；仓库许可 MIT，Copyright (c) Magic UI）。
+   本站零依赖、无构建：只借鉴其视觉机制（指针跟随的描边光带 + 卡面光晕），代码为自研重写，
+   不引入其 motion / next-themes / Tailwind / shadcn 依赖，也不复制其源码。
+   机制：js/main.js 把指针相对卡片左上角的坐标写进两个自定义属性（--mg-x / --mg-y），
+   卡片用「双层背景 + 双裁剪盒」把 1px 描边画成跟随指针的冷蓝 → 青渐变光带：
+     ① linear-gradient(--color-surface) padding-box —— 卡面底色（裁到内边界，中间不透光）
+     ② radial-gradient(circle at 指针位置) border-box —— 只露在 1px 的描边环上
+   描边必须透明（border-color: transparent）才能看见 ② —— 因为 border 永远画在背景之上。
+   静默态（指针不在卡上）：--mg-x/--mg-y 停在卡外（-400px），② 的最外圈正好是 --color-border，
+   所以不 hover 时视觉与普通卡片完全一致；卡面光晕（::after）默认 opacity: 0。 */
+.card--magic {
+  /* 光带 / 光晕取值：暗色主题 = 冷蓝 → 青（低饱和；亮色主题另有一套，见本块末尾） */
+  --mg-size: 190px;                        /* 光带半径：越小越像一小段亮边 */
+  --mg-from: rgba(127, 160, 196, 0.9);     /* 光带起点：冷蓝（= --color-accent #7fa0c4） */
+  --mg-to: rgba(86, 190, 196, 0.6);        /* 光带终点：青 */
+  --mg-glow: rgba(127, 160, 196, 0.14);    /* 卡面光晕：很淡的一层冷蓝 */
+  --mg-glow-end: rgba(127, 160, 196, 0);   /* 光晕外圈：同色透明（不用 transparent，避免插值发灰） */
+  --mg-x: -400px;                          /* 指针 x（卡内坐标；-400px = 卡外 = 静默态） */
+  --mg-y: -400px;
+
+  position: relative;                      /* ::after 光晕的定位基准（绝对定位的包含块 = padding box） */
+  isolation: isolate;                      /* 自建层叠上下文：光晕用 z-index:-1 就能压在卡面之上、文字之下 */
+  border-color: transparent;               /* 让描边光带（border-box 背景）透出来 */
+  background:
+    linear-gradient(var(--color-surface) 0 0) padding-box,
+    radial-gradient(
+      var(--mg-size) circle at var(--mg-x) var(--mg-y),
+      var(--mg-from),
+      var(--mg-to),
+      var(--color-border) 100%
+    ) border-box;
+}
+
+/* 卡面光晕：独立伪元素才能只对 opacity 做过渡 —— 位置每帧跟随，不受过渡拖尾影响 */
+.card--magic::after {
+  content: "";
+  position: absolute;
+  inset: 0;                                /* = 描边内侧（padding box），左侧强调边等描边不被盖住 */
+  z-index: -1;                             /* 卡面之上、卡片内容之下 */
+  border-radius: calc(var(--radius-sm) - 1px); /* 内边界圆角 = 外圆角 − 描边宽 */
+  background: radial-gradient(
+    var(--mg-size) circle at var(--mg-x) var(--mg-y),
+    var(--mg-glow),
+    var(--mg-glow-end) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.28s ease;
+  pointer-events: none;                    /* 纯装饰层：不挡文字选择与链接点击 */
+}
+
+.card--magic:hover::after,
+.card--magic.is-magic-active::after {      /* 触屏轻触时由 js/main.js 临时挂 is-magic-active */
+  opacity: 1;
+}
+
+/* 亮色主题：光带 / 光晕改用压深一档的同色相（冷蓝 → 青灰），在近白卡面上有形 */
+html[data-theme="light"] .card--magic {
+  --mg-from: rgba(38, 79, 120, 0.75);      /* = 亮色 --color-accent-strong #264f78 */
+  --mg-to: rgba(47, 92, 87, 0.5);          /* = 亮色 --about-hue-2 #2f5c57（青灰） */
+  --mg-glow: rgba(38, 79, 120, 0.10);
+  --mg-glow-end: rgba(38, 79, 120, 0);
+}
+
+/* 轮21：原「观点随笔」卡的 4px 左侧强调边覆盖规则（.card--magic.thoughts）已随板块删除；
+   魔法卡片现在只服务「项目 / 作品」板块的卡片。 */
+
+/* 无 hover 的触屏：不做「指针跟随」（轻触出光由 .is-magic-active 负责），
+   避免 Chrome 移动端把首次点击的 :hover 粘住导致光带停在旧位置；
+   :not(.is-magic-active) 保证触屏轻触期间（浏览器同时给 :hover）光晕仍亮 */
+@media (hover: none) {
+  .card--magic:hover:not(.is-magic-active)::after {
+    opacity: 0;
+  }
+}
+
+/* 无障碍：偏好减少动效时关掉光晕淡入淡出（光带本身是状态变化，非动画，保留） */
+@media (prefers-reduced-motion: reduce) {
+  .card--magic::after {
+    transition: none;
+  }
+}
+
+/* ---------- 聊天 Demo ---------- */
+.chat__notice {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-accent-strong);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-xs);
+  padding: 0.5rem 0.9rem;
+  margin-bottom: 1.5rem;
+  display: inline-block;
+}
+
+.chat__stream {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft-sm);
+  min-height: 16rem;
+  max-height: 24rem;
+  overflow-y: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.msg {
+  max-width: 78%;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* “正在思考”加载态 */
+.msg--thinking {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.msg__label {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.thinking {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.thinking span {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-circle);
+  background: var(--color-accent);
+  animation: thinking-pulse 1.1s infinite ease-in-out;
+}
+
+.thinking span:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.thinking span:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes thinking-pulse {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+.msg--ai {
+  align-self: flex-start;
+  background: var(--color-surface-2);
+  border-left: 3px solid var(--color-accent);
+}
+
+.msg--user {
+  align-self: flex-end;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border-color: var(--color-accent);
+}
+
+.chat__quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.quick-btn {
+  padding: 0.4rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.08s ease;
+}
+
+.quick-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.quick-btn:active {
+  transform: translateY(1px);
+  filter: brightness(0.94);
+}
+
+/* 汉堡按钮的悬停反馈（描边变强调色 + 淡淡填充 + 图标变色） */
+.nav-toggle:hover {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  color: var(--color-accent-strong);
+}
+
+.nav-toggle:active {
+  transform: translateY(1px);
+  filter: brightness(0.94);
+}
+
+/* 联系邮箱（按钮样式）悬停 / 点击反馈 */
+.contact__email:hover {
+  background: var(--color-accent-strong);
+  border-color: var(--color-accent-strong);
+  color: var(--color-on-accent);
+}
+
+.contact__email:active {
+  transform: translateY(1px);
+  filter: brightness(0.94);
+}
+
+.quick-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent-strong);
+}
+
+.chat__form {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.chat__input {
+  flex: 1;
+  min-width: 0; /* 轮12d：flex 子项默认 min-width:auto 不缩到内容最小宽 → 320px 视口溢出 34px，需显式归零 */
+  padding: 0.7rem 0.9rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 0.98rem;
+  font-family: inherit;
+}
+
+.chat__input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.chat__send {
+  flex: none;
+}
+
+/* ---------- 联系我 ---------- */
+.contact {
+  text-align: left;
+}
+
+.contact__text {
+  font-size: 1.15rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1.4rem;
+}
+
+.contact__email {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+/* 联系区：邮箱 + 一键复制并排 */
+.contact__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.copy-email {
+  font-size: 0.9rem;
+}
+
+/* 全局提示 toast（复制成功等）：浮层，用最大档柔和阴影 */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 2rem;
+  transform: translate(-50%, 1.2rem);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft-lg);
+  padding: 0.7rem 1.3rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  background: var(--color-banner-bg);
+  border-top: 1px solid var(--color-border);
+  padding: 2.5rem 1.25rem;
+}
+
+.footer__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.footer__version {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-accent-strong);
+  margin-bottom: 0.4rem;
+}
+
+.footer__email {
+  font-size: 0.95rem;
+  margin-bottom: 1.2rem;
+}
+
+.footer__email a {
+  color: var(--color-accent-strong);
+}
+
+.footer__email a:hover {
+  text-decoration: underline;
+}
+
+/* 轮30：页脚正中口号（字号略大于页脚其余文字，唯一居中行） */
+.footer__slogan {
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-text);
+  margin: 0 0 1.2rem;
+}
+
+.footer__declaration {
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  padding: 1rem 0;
+  margin-bottom: 1.2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.5rem;
+}
+
+.footer__declaration p {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.02em;
+}
+
+.footer__copyright {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* ============================================================
+   响应式：移动优先适配
+   ============================================================ */
+
+/* ---------- 导航折叠（≤ 1100px）：横排导航 + 右侧按钮组放不下时收进汉堡菜单 ----------
+   轮12b：原先折叠只在 ≤768px 生效，769~1024px 仍是横排。实测 900px 视口下
+   表头内容宽 953px、视口可用 885px → 溢出 68px，窄平板上一路出现横向滚动条。
+   导航项最小内容宽本身就有 ≈568px，靠压缩间距/字号在 769px 附近无法真正放下，
+   故折叠断点上移到 1024px，与移动端共用同一套菜单交互（折叠态导航为绝对定位下拉，
+   不占表头宽度；表头主按钮隐藏，导航内仍有「联系我」）。
+   轮20：导航新增第 8 项「Living Room」后最小内容宽从 ≈568px 涨到 ≈633px；
+   表头内容区固定 1100−40=1060px，扣掉品牌区 190.3px、按钮组 155.5px 与两条 24px
+   间距后留给导航的只有 666.2px → 1440px 视口下导航被压到 666.2px，「Living Room」
+   折成两行（实测高 65.9px，其余项 40.1px）且列表仍溢出 3px；1025px 视口下更把
+   右侧按钮组顶出右边界 41px（页面出现横向滚动条）。
+   故本轮把导航项横向内边距 0.7rem→0.55rem、列表间距 0.35rem→0.3rem（导航自然宽
+   681.6px→637.6px，1100px 表头下余量 28.6px），并把折叠断点从 1024px 上移到
+   1100px（1100px 视口导航可用 667.2px，仍能放下 637.6px；1025~1100px 窗口直接
+   走汉堡菜单，与轮12b 同一套交互）。
+   轮21：删除第 8 项导航「观点随笔」后回到 7 项，导航最小内容宽 ≈637.6px → ≈517px
+   （headless 实测桌面导航自然宽 548px）。断点值实验（把断点临时调到 880px 再观察真实
+   桌面布局）：1000px 视口导航零溢出、距右侧按钮组 26px，1024px 视口余 38px；而 960px 起
+   「Living Room」折行（导航溢出 6px），900px 起头部与页面横向溢出 29px。故折叠断点从
+   1100px 回落到 1024px（与轮12b 取值一致，也与文件里其他 ≤1024px 断点对齐）：
+   ≥1025px 走横排导航，≤1024px（含 iPad 横屏）走汉堡菜单。
+   轮22：导航第 4 项「技能 & 兴趣」拆成「音乐探索 + 生活漫游」，项数回到 8 项，
+   导航最小内容宽 517px → ≈600px（headless 实测：1101px 视口可用 652px，8 项单行、
+   零溢出，余量 ≈52px；1056px 可用 607px 恰好单行；1040px 可用 591px 起「Living Room」
+   折行；1025px 可用 576px，溢出 3px 且折成 2 行）。故折叠断点从 1024px 回落到 1100px
+   —— ≥1101px 走横排导航，≤1100px 走汉堡菜单（与轮20 同一取值与同一套交互）。 */
+@media (max-width: 1100px) {
+  /* 折叠后导航高度与桌面不同，锚点偏移量单独回落（桌面为 4.4rem；此处实测导航高 76.2px） */
+  :root {
+    --nav-offset: 4.8rem;
+  }
+
+  .nav-toggle {
+    display: flex;
+  }
+
+  .nav {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+    display: none;
+    /* 菜单内容过长时在内部滚动，而非撑开页面 */
+    max-height: calc(100vh - var(--nav-offset));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav.is-open {
+    display: block;
+  }
+
+  .nav__list {
+    flex-direction: column; /* 折叠态竖排 */
+    align-items: stretch;
+    padding: 0.5rem;
+    gap: 0;
+  }
+
+  /* 竖排菜单已有行分隔线，当前项指示线改短、贴近文字，避免与分隔线混淆 */
+  .nav__link::after {
+    left: 1.1rem;
+    right: auto;
+    width: 1.6rem;
+    bottom: 0.85rem;
+  }
+
+  .nav__link {
+    display: block;
+    text-align: left;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 1.05rem;
+  }
+
+  .header__inner {
+    justify-content: space-between;
+    flex-wrap: nowrap;
+  }
+
+  .header__actions .btn--primary {
+    display: none; /* 折叠态隐藏头部主按钮，可用导航内「联系我」 */
+  }
+}
+
+/* ---------- 平板带触控目标：769~1100px 补 ≥44px（轮31b · USR-42） ----------
+   汉堡导航在 ≤1100px 出现，即「平板 / 窄窗口」区间同属触控设备（iPad 等），
+   但上面 ≤768px 那段「手机端加大按钮点击区域」没有覆盖到这里 —— iPad Pro 11
+   （834×1194，真触屏）实测 #navToggle 37×37、.theme-switch__btn 36.8 高、.btn 36.8、
+   .quick-btn 34.8，均低于 Apple HIG 建议的 44px。此处补同一套规则（2.75rem = 44px）。
+   顶栏内容最高者本就是已抬到 44px 的 .brand，故不改变顶栏高度与 --nav-offset。 */
+@media (min-width: 769px) and (max-width: 1100px) {
+  .btn,
+  .quick-btn,
+  .nav-toggle {
+    min-height: 2.75rem;
+  }
+
+  .nav-toggle {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  /* 主题开关：与同排按钮一致的触控高度；宽度与滑块按原作 125×70 等比放大
+     （44 × 125/70 ≈ 78.6px；56 × 44/70 ≈ 35.2px） */
+  .theme-switch {
+    --sw-w: 4.9rem;
+    --sw-h: 2.75rem;
+    --sw-knob: 35px;
+  }
+}
+
+/* ---------- 关于我：窄屏让位（≤ 1199px） ----------
+   轮12b：斜切描边是「卡片外扩 0.4rem 后剪切 15°」，剪切会把描边的横向包围盒再撑开
+   ≈ (描边高 − 2×3.6rem) × tan15° ÷ 2 ≈ 22~27px。1440px 视口区块两侧各有 162.5px 余量，
+   但 1025~1199px 时只剩 20px → 描边顶出视口并出现横向滚动条（1100px 实测溢 7px）。
+   故在此区间给网格让出 1.25rem 侧向余量，卡片相应收窄，描边完整可见；≥1200px 不受影响。 */
+@media (max-width: 1199px) {
+  .about__grid {
+    padding: 0 1.25rem;
+  }
+}
+
+/* ---------- 移动端（≤ 768px）：单栏 + 加大触控区域 ---------- */
+@media (max-width: 768px) {
+  /* 移动端导航高度与桌面不同，锚点偏移量单独回落（桌面为 4.4rem；此处实测导航高 76.2px） */
+  :root {
+    --nav-offset: 4.8rem;
+  }
+
+  /* 移动端横向空间紧张：隐藏字标右半段（分隔竖线 + 拼音），只留徽标 + 中文名 */
+  .brand__name::after {
+    content: none;
+  }
+
+  /* 手机端加大按钮点击区域（触控友好 ≥44px） */
+  .btn,
+  .quick-btn,
+  .nav-toggle {
+    min-height: 2.9rem;
+  }
+
+  .btn {
+    padding: 0.8rem 1.5rem;
+  }
+
+  .quick-btn {
+    padding: 0.6rem 0.95rem;
+  }
+
+  .nav-toggle {
+    width: 2.9rem;
+    height: 2.9rem;
+  }
+
+  .nav__link {
+    padding: 1rem 1.1rem; /* 竖排菜单项点击区域更大 */
+  }
+
+  /* 主题开关：与同排按钮一致的触控高度（2.9rem），宽度按 125:70 等比放大到 5.2rem */
+  .theme-switch {
+    --sw-w: 5.2rem;
+    --sw-h: 2.9rem;
+    --sw-knob: 38px;
+  }
+
+  .about__grid {
+    grid-template-columns: 1fr; /* 移动单栏 */
+    gap: 1rem;
+  }
+
+  /* 轮12b：单栏等高由 .about__grid 的 grid-auto-rows:1fr 保证；这里只调描边比例 ——
+     1) 左右描边层内缩改为 15%（≈桌面 3rem/260px 的 18.5%），375px 视口下
+        横段 ≈217px、竖段 ≈197px → 1.10，与桌面 1.00 接近，不再出现 1.74 / 3.05 的扁长条；
+     2) 上下内缩收到 1.75rem（3.6rem → 1.75rem）配合上面这条一起把框拉方正。 */
+  .about-card::before {
+    left: 15%;
+    right: 15%;
+  }
+
+  .about-card::after {
+    top: 1.75rem;
+    bottom: 1.75rem;
+  }
+
+  .projects {
+    grid-template-columns: 1fr; /* 手机端项目卡单列 */
+  }
+
+  .hero__inner {
+    padding: 1.5rem 1.25rem 2rem; /* 移动端同样贴底：上下留白再收一档 */
+  }
+
+  /* 移动端首屏：装饰徽标（HTML 里为 aria-hidden 的纯装饰元素）不参与贴底版式，
+     否则会把「说明文案 + 按钮」挤出首屏折线；信息本身没有丢失 */
+  .hero__avatar {
+    display: none;
+  }
+
+  .section {
+    padding: 3.5rem 1.25rem;
+  }
+
+  /* 移动端「穿越」入口：按钮收小一档（光环扩散幅度保持原样） */
+  .journey__portal {
+    width: 7.6rem;
+    height: 7.6rem;
+    font-size: 1.12rem;
+  }
+}
+
+/* ---------- 平板（769px ~ 1024px） ---------- */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .about__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* 轮12b：描边比例 —— 左右描边层内缩 25%（卡 392.5px 时横段 196px，
+     与竖段 198px 基本 1:1；900px 平板正好方正，1024px 时 1.15、769px 时 0.73），
+     比固定 6rem 在整个 769~1024px 区间更稳定。 */
+  .about-card::before {
+    left: 25%;
+    right: 25%;
+  }
+
+  .about-card::after {
+    top: 0.9rem;
+    bottom: 0.9rem;
+  }
+}
+
+/* ---------- 暗色亮色过渡淡化（少量，克制） ---------- */
+body,
+.section,
+.section--alt {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* header 另有「透明 ↔ 毛玻璃」的滚动态过渡，单独声明，避免被上面的 transition 简写覆盖 */
+.header {
+  transition: background-color 0.22s ease, border-color 0.22s ease,
+    color 0.2s ease, -webkit-backdrop-filter 0.22s ease,
+    backdrop-filter 0.22s ease;
+}
+
+
+/* ============================================================
+   终页 Outro + Ready（轮18 · USR-29 / 轮18b 修订）
+   - 终页：正文三行排比保持用户原文分行（<br>），左侧细描边做视觉引导
+   - Ready：点按 → 按钮转圈加载 → 展开「联系我」（已并入终页内部，去接缝）
+   - 颜色一律走 CSS 变量（暗 / 亮主题自动切换），动效只改 transform / opacity 不改布局
+   ============================================================ */
+.outro {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.outro__text {
+  font-size: 1.15rem;
+  color: var(--color-text-muted);
+  max-width: 52rem;
+}
+
+/* 三行排比：用户原文的三行，行距放宽 + 左侧 3px 描边（与全站轻圆角/细描边基调一致） */
+.outro__verse {
+  font-size: 1.15rem;
+  color: var(--color-text-muted);
+  line-height: 2;
+  max-width: 52rem;
+  padding-left: 1rem;
+  border-left: 3px solid var(--color-border);
+}
+
+.outro__actions {
+  margin-top: 0.4rem;
+}
+
+/* ---------- 联系我：并入终页内部（轮18b 修订，去接缝） ---------- */
+/* 同一张卡片、同一底色、无分界描边，只留呼吸间距 —— 读作「向未知出发」的收尾内容 */
+.outro__contact[hidden] {
+  display: none;
+}
+
+.outro__contact {
+  margin-top: 1.7rem;
+}
+
+.outro__contact-title {
+  font-size: clamp(1.25rem, 3.4vw, 1.6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.9rem;
+}
+
+/* 展开时轻微上浮淡入（只改 opacity / transform，不动布局） */
+@keyframes contact-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.outro__contact[data-revealed="true"] {
+  animation: contact-in 0.32s ease-out;
+}
+
+/* ---------- Ready 按钮加载态 ---------- */
+/* 转圈期间按钮尺寸不变（文字转透明但仍占位），把布局跳动降为零 */
+.btn.is-loading {
+  position: relative;
+  color: transparent;
+  pointer-events: none;
+}
+
+.btn.is-loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 1.05rem;
+  height: 1.05rem;
+  border: 2px solid var(--color-on-accent);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: ready-spin 0.7s linear infinite;
+}
+
+@keyframes ready-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 窄屏：终页内「联系我」留白收紧 */
+@media (max-width: 768px) {
+  .outro__contact {
+    margin-top: 1.3rem;
+  }
+}
+
+/* 降低动态效果：不淡入、不转圈（加载过程本身也缩短为即时） */
+@media (prefers-reduced-motion: reduce) {
+  .outro__contact[data-revealed="true"] {
+    animation: none;
+  }
+
+  .btn.is-loading::after {
+    animation: none;
+  }
+}
+
+/* 降低动态效果：四年探索之旅入口（轮19）—— 扩散光环与呼吸柔光停止播放，
+   改为一道静态光环 + 静态柔光：按钮的「通道」识别度与可点性不减，只是不再运动 */
+@media (prefers-reduced-motion: reduce) {
+  .journey__ring {
+    animation: none;
+    opacity: 0.35;
+  }
+
+  .journey__ring--2 {
+    opacity: 0;
+  }
+
+  .journey__glow {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+/* ============================================================
+   「我的会客厅」Living Room（轮20 · USR-31）
+   位置：主线「我的计科四年探索之旅」之后。
+   与用户约定的三条呈现规则：
+     ① 排布 = 宽屏「学习方法（左）｜留言墙（右）」左右并排，≤1024px 收成单栏上下堆叠；
+     ② 学习方法「不要用生硬的框框起来」→ 本区块与 .card 无关：零边框、零底色、零阴影、
+        零内边距，只用排版本体分层（小标题细线 / 段首小标签 / 校训词下标线）；
+     ③ 新留言以「落座」动效在墙顶浮现（只动 transform + opacity，不改布局），
+        与左侧学习方法同屏相邻 —— 即用户说的「和学习方法弹到一起」。
+   颜色一律走既有变量（深 / 亮双主题自适应），零新增色值、零第三方依赖。
+   ============================================================ */
+
+/* ---------- 板块引言：会客厅的语气，比常规引言多留一点空 ---------- */
+.livingroom__intro {
+  margin-bottom: 2.4rem;
+}
+
+/* ---------- 两栏布局（规则①） ---------- */
+.livingroom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: start;
+}
+
+/* ============================================================
+   左栏：我的学习方法（无框便签式，规则②）
+   刻意不套 .card、不加边框底色 —— 视觉分层全靠排版本体
+   ============================================================ */
+.methods {
+  min-width: 0;
+}
+
+/* 小标题：只压一条细横线（与板块标题那条 3px 粗线呼应，但轻得多），这不是「框」 */
+.methods__title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 1.4rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.methods__eyebrow {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-strong);
+}
+
+.methods__line {
+  max-width: 34rem;
+  margin-bottom: 1.05rem;
+  font-size: 1.06rem;
+  line-height: 1.95; /* 便签式阅读：行距再放宽一档 */
+  color: var(--color-text);
+}
+
+/* 段首小标签（高中 / 大学）：只改字重与颜色，不加任何底纹色块 */
+.methods__stage {
+  font-weight: 700;
+  color: var(--color-accent-strong);
+}
+
+/* 校训词（实事求是 / 开物成务，励学利民）：用「划重点」式 2px 下标线强调，
+   不改字号、不插入任何符号 —— 像便签上被荧光笔划过的那几个字 */
+.methods__mark {
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+  text-decoration-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+}
+
+/* 邀请句：会客厅的「递话」，左栏唯一实心强调的一行 */
+.methods__invite {
+  max-width: 34rem;
+  margin-top: 1.5rem;
+  font-size: 1.12rem;
+  font-weight: 600;
+  line-height: 1.85;
+  color: var(--color-accent-strong);
+}
+
+/* ============================================================
+   右栏：留言墙（会客厅的「说话区」）
+   ============================================================ */
+.parlor {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.parlor__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 1.2rem;
+}
+
+.parlor__title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.parlor__eyebrow {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-strong);
+}
+
+/* 到场人数：会客厅的「人气」提示，随留言数实时更新 */
+.parlor__count {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* ---------- 访客留言对话框 ---------- */
+.parlor__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem;
+  margin-bottom: 0.9rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft-sm);
+}
+
+.parlor__input {
+  width: 100%;
+  min-width: 0; /* flex/grid 子项缩不下去时会把两栏撑破，显式归零（同 .chat__input 的历史修正） */
+  padding: 0.65rem 0.85rem;
+  background: var(--color-bg); /* 输入域比面板再沉一档：写出「凹陷可写」的手感 */
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  resize: vertical; /* 留言框只允许纵向拉伸，避免横向撑破两栏 */
+}
+
+.parlor__input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.parlor__input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.parlor__input--area {
+  min-height: 5.4rem;
+}
+
+.parlor__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+}
+
+/* 模式说明行：云端模式 / 本机模式的如实交代（结构同 .chat__notice 的 Demo 说明） */
+.parlor__hint {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+.parlor__send[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- 状态行：云端连不上 / 本机存储不可用等提示，无内容时不占位 ---------- */
+.parlor__status {
+  margin-bottom: 0.9rem;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--color-text-muted);
+}
+
+.parlor__status:empty {
+  display: none;
+}
+
+.parlor__status.is-warn {
+  font-weight: 600;
+  color: var(--color-accent-strong);
+}
+
+/* ---------- 留言墙 ---------- */
+.parlor__wall {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  max-height: 26rem; /* 留言多了在墙内滚动，不把页面拉得过长（与 .chat__stream 同一策略） */
+  overflow-y: auto;
+  padding-right: 0.2rem; /* 滚动条与便签之间留一点呼吸 */
+}
+
+/* 空态：一张虚线便签，等着第一位小伙伴 */
+.parlor__empty {
+  padding: 1.1rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.92rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* 空态便签靠 hidden 切换（有留言就收起，节点仍留在墙内）：显式声明，避免将来加了
+   display 规则把浏览器默认的 [hidden] 覆盖掉 */
+.parlor__empty[hidden] {
+  display: none;
+}
+
+/* 单条留言 = 一张贴在墙上的便签：左缘一道强调色贴边，与聊天区 AI 消息同一视觉语言 */
+.note {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1rem;
+  box-shadow: var(--shadow-soft-sm);
+}
+
+/* 小伙伴的备注行：标签「小伙伴」+ 昵称 + 右侧时间 */
+.note__meta {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.note__tag {
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-xs);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--color-accent-strong);
+}
+
+.note__who {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.note__time {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.note__body {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  white-space: pre-wrap; /* 保留访客自己敲的换行，同时收敛多余空白 */
+  overflow-wrap: anywhere; /* 超长连续串（例如粘贴的链接）也不撑破两栏 */
+}
+
+/* 「落座」动效：新留言在墙顶浮现 + 轻微下沉回弹（规则③，只动 transform / opacity） */
+@keyframes note-sit {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.985);
+  }
+
+  60% {
+    opacity: 1;
+    transform: translateY(2px) scale(1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.note--new {
+  animation: note-sit 0.45s ease-out 1;
+}
+
+/* ---------- 窄屏：左右并排 → 上下堆叠（学习方法在上、留言墙在下） ---------- */
+@media (max-width: 1024px) {
+  .livingroom {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .livingroom__intro {
+    margin-bottom: 1.8rem;
+  }
+
+  .methods__line,
+  .methods__invite {
+    font-size: 1.02rem;
+  }
+
+  .parlor__wall {
+    max-height: 22rem;
+  }
+
+  .parlor__foot {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .parlor__send {
+    width: 100%;
+  }
+}
+
+/* 降低动态效果：新留言不再「落座」弹入，直接呈现（内容与可读性完全不受影响） */
+@media (prefers-reduced-motion: reduce) {
+  .note--new {
+    animation: none;
+  }
+}
+
+/* 脚本被禁用时的留言说明（<noscript>）：与状态行同一视觉层级，不抢戏 */
+.parlor__noscript {
+  display: block;
+  margin-bottom: 0.9rem;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--color-text-muted);
+}

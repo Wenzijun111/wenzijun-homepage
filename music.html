@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="音乐探索 · 声音漫游：九大流派的关系图谱，点击流派节点，漫游它的故事与收藏曲目。">
+  <title>音乐探索 · 声音漫游 · 温梓君</title>
+  <!-- Web Font：与主页面同一套（离线时回退系统字体） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <!-- 主题首帧：与主页面共用 localStorage 的 site-theme 一个键，从主线进来不闪色；
+       副页面不设独立主题开关，主题始终跟随主线的当前选择 -->
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem("site-theme") === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      } catch (e) {
+        /* 隐私模式 / 存储被禁用：保持默认深色 */
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/roam.css">
+</head>
+<body class="rbody">
+
+  <!-- 入场柔光（纯装饰层）：动画失败时默认不可见，不会遮挡内容 -->
+  <div class="rwarp" aria-hidden="true"></div>
+
+  <!-- ========== 顶部吸顶条 ==========
+       本页不在主线导航内，也没有任何指向主线其他板块的链接（会客厅联动除外）；
+       出口 = 这里的「返回主线」按钮 + 结尾区同款按钮 -->
+  <div class="rbar">
+    <a class="rbar__back" href="index.html#music">
+      <span class="rbar__arrow" aria-hidden="true">←</span>返回主线
+    </a>
+    <span class="rbar__progress" id="roamProgress" aria-hidden="true"></span>
+  </div>
+
+  <main class="rmain">
+
+    <!-- ========== ① 顶部文艺引言区（文案逐字取自你提供的导语） ========== -->
+    <section class="rsec rsec--alt rsec--deco" aria-label="引言">
+      <!-- 背景装饰（纯装饰层，配色随深 / 亮主题）：唱片圆形纹理 / 淡化乐谱线 / 音符圆点 / 柔和发光节点 / 声波线 -->
+      <div class="rdeco rdeco--music" aria-hidden="true">
+        <span class="rdeco__vinyl rdeco__vinyl--a"></span>
+        <span class="rdeco__staff rdeco__staff--a"></span>
+        <span class="rdeco__dots rdeco__dots--bl"></span>
+        <span class="rdeco__node rdeco__node--b"></span>
+        <svg class="rdeco__svg" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <path class="rdeco__wave" d="M-80,300 C60,250 180,352 320,300 C460,248 580,352 720,300 C860,248 980,352 1120,300 C1240,256 1310,296 1380,300"></path>
+          <path class="rdeco__wave rdeco__wave--2" d="M-80,386 C60,438 180,334 320,386 C460,438 580,334 720,386 C860,438 980,334 1120,386 C1240,430 1310,390 1380,386"></path>
+        </svg>
+      </div>
+      <div class="rsec__inner">
+        <header class="rsec__head" data-reveal>
+          <p class="rstep">01 / 引言</p>
+          <h1 class="rtitle">声音漫游 <span class="reyebrow">Sound Roaming</span></h1>
+        </header>
+
+        <p class="rlead" data-reveal>在旋律里漫游，穿行于不同时代的声音。</p>
+        <p class="rnote" data-reveal>从古典的厚重回响，乡村的质朴叙事，到爵士自由的即兴遐想；摇滚迸发热烈，R&amp;B 流淌细腻，流行容纳万千情绪。电子借机器开拓全新声场，电影原声承载画面与故事，多语种旋律带来异域的听觉邂逅。</p>
+        <p class="rnote" data-reveal>没有绝对的边界，流派互相渗透、彼此滋养。探索，便是聆听那些跨越风格的共鸣，在无数旋律交集里，听见更多元、更完整的世界。</p>
+      </div>
+    </section>
+
+    <!-- ========== ② 核心交互区：流派关系图谱（核心亮点）+ 右侧详情面板 ==========
+         九个流派各为一个可点、可悬浮、可键盘聚焦的节点按钮，线条表示「互相影响、互相融合」：
+           - 点击（或回车 / 空格）→ 右侧面板切换该流派的介绍 / 代表气质 / 收藏曲目，并提亮它的全部关联线；
+           - 悬浮 / 聚焦 → 节点柔光放大 + 关联线淡亮 + 弹出极简气质短句（短句显隐为纯 CSS）；
+           - 节点坐标写在 css/roam.css（--x / --y 百分比，与下方 SVG viewBox 1000×680 同一坐标系），
+             因此缩放、换断点时连线与节点始终对齐；
+           - ≤1024px 自动降级为「列表式」节点排布（连线隐藏），信息与可点性不减。 -->
+    <section class="rsec rsec--deco" aria-label="流派关系图谱">
+      <!-- 背景装饰（纯装饰层）：淡化乐谱线 / 音符圆点 / 柔和发光节点 / 手写声波 / 底部频谱柱 -->
+      <div class="rdeco rdeco--music" aria-hidden="true">
+        <span class="rdeco__staff rdeco__staff--a"></span>
+        <span class="rdeco__staff rdeco__staff--b"></span>
+        <span class="rdeco__dots rdeco__dots--tr"></span>
+        <span class="rdeco__node rdeco__node--a"></span>
+        <span class="rdeco__node rdeco__node--c"></span>
+        <svg class="rdeco__svg" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <path class="rdeco__hand" d="M-60,640 C40,600 96,690 196,650 C296,610 336,556 436,606 C536,656 576,700 676,656 C776,612 816,584 916,634 C1016,684 1076,700 1176,652"></path>
+          <rect class="rdeco__bar" x="80" y="734" width="16" height="46"></rect>
+          <rect class="rdeco__bar" x="180" y="706" width="16" height="74"></rect>
+          <rect class="rdeco__bar" x="280" y="722" width="16" height="58"></rect>
+          <rect class="rdeco__bar" x="380" y="688" width="16" height="92"></rect>
+          <rect class="rdeco__bar" x="480" y="716" width="16" height="64"></rect>
+          <rect class="rdeco__bar" x="580" y="700" width="16" height="80"></rect>
+          <rect class="rdeco__bar" x="680" y="730" width="16" height="50"></rect>
+          <rect class="rdeco__bar" x="780" y="694" width="16" height="86"></rect>
+          <rect class="rdeco__bar" x="880" y="720" width="16" height="60"></rect>
+          <rect class="rdeco__bar" x="980" y="708" width="16" height="72"></rect>
+        </svg>
+      </div>
+      <div class="rsec__inner">
+        <header class="rsec__head" data-reveal>
+          <p class="rstep">02 / 流派图谱</p>
+          <h2 class="rtitle">流派关系图谱 <span class="reyebrow">Genre Map</span></h2>
+        </header>
+
+        <p class="rhint" data-reveal>点击流派节点，漫游它的故事与收藏曲目</p>
+
+        <div class="rmap" data-reveal>
+          <div class="rmap__stage">
+            <div class="mmap" id="musicMap">
+              <!-- 关联线条：data-from / data-to 供 js/roam.js 做「关联线提亮」；
+                   坐标与节点圆心一一对应（viewBox 1000 × 680） -->
+              <svg class="mmap__lines" viewBox="0 0 1000 680" aria-hidden="true" focusable="false">
+                <!-- 流行（居中）与其吸收的八个流派 -->
+                <line class="mmap__line" data-from="pop" data-to="classical" x1="500" y1="340" x2="245.4" y2="188"></line>
+                <line class="mmap__line" data-from="pop" data-to="country" x1="500" y1="340" x2="754.6" y2="492"></line>
+                <line class="mmap__line" data-from="pop" data-to="jazz" x1="500" y1="340" x2="140" y2="340"></line>
+                <line class="mmap__line" data-from="pop" data-to="rock" x1="500" y1="340" x2="860" y2="340"></line>
+                <line class="mmap__line" data-from="pop" data-to="rnb" x1="500" y1="340" x2="245.4" y2="492"></line>
+                <line class="mmap__line" data-from="pop" data-to="electronic" x1="500" y1="340" x2="754.6" y2="188"></line>
+                <line class="mmap__line" data-from="pop" data-to="soundtrack" x1="500" y1="340" x2="500" y2="125"></line>
+                <line class="mmap__line" data-from="pop" data-to="multilingual" x1="500" y1="340" x2="500" y2="555"></line>
+                <!-- 流派之间的渗透与滋养 -->
+                <line class="mmap__line" data-from="classical" data-to="jazz" x1="245.4" y1="188" x2="140" y2="340"></line>
+                <line class="mmap__line" data-from="classical" data-to="soundtrack" x1="245.4" y1="188" x2="500" y2="125"></line>
+                <line class="mmap__line" data-from="jazz" data-to="rnb" x1="140" y1="340" x2="245.4" y2="492"></line>
+                <line class="mmap__line" data-from="rnb" data-to="rock" x1="245.4" y1="492" x2="860" y2="340"></line>
+                <line class="mmap__line" data-from="country" data-to="rock" x1="754.6" y1="492" x2="860" y2="340"></line>
+                <line class="mmap__line" data-from="electronic" data-to="soundtrack" x1="754.6" y1="188" x2="500" y2="125"></line>
+                <line class="mmap__line" data-from="rock" data-to="electronic" x1="860" y1="340" x2="754.6" y2="188"></line>
+              </svg>
+
+              <!-- 九大流派节点（顺序与导语一致）：名称 / 英文 / 悬浮气质短句 -->
+              <button class="mmap__node" type="button" data-genre="classical" aria-pressed="false">
+                <span class="mmap__dot" aria-hidden="true"></span>
+                <span class="mmap__name">古典</span>
+                <span class="mmap__en">Classical</span>
+                <span class="mmap__aura" aria-hidden="true">最古老的声音秩序。</span>
+              </button>
+
+              <button class="mmap__node" type="button" data-genre="country" aria-pressed="false">
+                <span class="mmap__dot" aria-hidden="true"></span>
+                <span class="mmap__name">乡村</span>
+                <span class="mmap__en">Country</span>
+                <span class="mmap__aura" aria-hidden="true">最质朴的听觉烟火。</span>
+              </button>
+
+              <button class="mmap__node" type="button" data-genre="jazz" aria-pressed="false">
+                <span class="mmap__dot" aria-hidden="true"></span>
+                <span class="mmap__name">爵士</span>
+                <span class="mmap__en">Jazz</span>
+                <span class="mmap__aura" aria-hidden="true">自由的声音实验。</span>
+              </button>
+
+              <button class="mmap__node" type="button" data-genre="rock" aria-pressed="false">
+                <span class="mmap__dot" aria-hidden="true"></span>
+                <span class="mmap__name">摇滚</span>
+                <span class="mmap__en">Rock</span>
+                <span class="mmap__aura" aria-hidden="true">打破边界的听觉力量。</span>
+              </button>
+
+              <button class="mmap__node" type="button" data-genre="rnb" aria-pressed="false">
+                <span class="mmap__dot" aria-hidden="true"></span>
+                <span class="mmap__name">节奏布鲁斯</span>
+                <span class="mmap__en">R&amp;B</span>
+                <span class="mmap__aura" aria-hidden="true">流动且细腻的律动美学。</span>
+              </button>
+
+              <button class="mmap__node" type="button" data-genre="pop" aria-pressed="false">
+                <span class="mmap__dot" aria-hidden="true"></span>
+                <span class="mmap__name">流行</span>
+                <span class="mmap__en">Pop</span>
+                <span class="mmap__aura" aria-hidden="true">包容万象的声音集合。</span>
+              </button>
+
+              <button class="mmap__node" type="button" data-genre="electronic" aria-pressed="false">
+                <span class="mmap__dot" aria-hidden="true"></span>
+                <span class="mmap__name">电子</span>
+                <span class="mmap__en">Electronic</span>
+                <span class="mmap__aura" aria-hidden="true">科技创造的全新声场。</span>
+              </button>
+
+              <button class="mmap__node" type="button" data-genre="soundtrack" aria-pressed="false">
+                <span class="mmap__dot" aria-hidden="true"></span>
+                <span class="mmap__name">电影原声</span>
+                <span class="mmap__en">Soundtrack</span>
+                <span class="mmap__aura" aria-hidden="true">自带画面的旋律。</span>
+              </button>
+
+              <button class="mmap__node" type="button" data-genre="multilingual" aria-pressed="false">
+                <span class="mmap__dot" aria-hidden="true"></span>
+                <span class="mmap__name">多语种</span>
+                <span class="mmap__en">Multilingual</span>
+                <span class="mmap__aura" aria-hidden="true">跨越语言的听觉漫游。</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 右侧详情面板：默认只留一句开启提示；点击流派后由 js/roam.js 以 textContent 重建内容 -->
+          <aside class="mpanel" id="musicPanel" aria-live="polite" aria-label="流派详情面板">
+            <p class="mpanel__empty">点击任意流派节点，开启听觉漫游</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== ③ 底部漫游提示 + 会客厅联动 + 收尾 Footer ========== -->
+    <section class="rsec rsec--alt rsec--deco" aria-label="漫游提示与会客厅联动">
+      <!-- 背景装饰（纯装饰层）：唱片圆形纹理 / 淡化乐谱线 / 音符圆点 / 柔和发光节点 / 声波线 + 手写声波 -->
+      <div class="rdeco rdeco--music" aria-hidden="true">
+        <span class="rdeco__vinyl rdeco__vinyl--b"></span>
+        <span class="rdeco__staff rdeco__staff--b"></span>
+        <span class="rdeco__dots rdeco__dots--bl"></span>
+        <span class="rdeco__node rdeco__node--a"></span>
+        <svg class="rdeco__svg" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <path class="rdeco__wave" d="M-80,520 C60,470 180,572 320,520 C460,468 580,572 720,520 C860,468 980,572 1120,520 C1240,476 1310,516 1380,520"></path>
+          <path class="rdeco__hand" d="M240,700 C320,660 380,740 460,700 C540,660 600,740 680,700 C760,660 820,740 900,700 C980,660 1040,740 1120,700"></path>
+        </svg>
+      </div>
+      <div class="rsec__inner">
+        <div class="routro">
+          <p class="rnote" data-reveal>旋律没有边界，探索没有终点。如果你也有私藏的漫游曲目，欢迎前往会客厅分享你的听觉世界。</p>
+
+          <p class="rclosing" data-reveal>在旋律里漫游，在声音里探索世界，音乐宇宙那么大，未来还有更多曲风、更多流派的宝藏等我去探索……</p>
+
+          <p class="ractions" data-reveal>
+            <a class="btn btn--primary" href="index.html#livingroom">去会客厅分享</a>
+            <a class="btn btn--ghost" href="index.html#music">返回主线</a>
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="js/roam.js"></script>
+</body>
+</html>

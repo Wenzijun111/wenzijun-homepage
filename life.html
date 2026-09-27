@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="生活漫游：除旋律之外，生活亦是一场无尽的探索。八大兴趣卡片，点击翻面，解锁多元生活漫游。">
+  <title>生活漫游 · Life Roaming · 温梓君</title>
+  <!-- Web Font：与主页面同一套（离线时回退系统字体） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <!-- 主题首帧：与主页面共用 localStorage 的 site-theme 一个键，从主线进来不闪色；
+       副页面不设独立主题开关，主题始终跟随主线的当前选择 -->
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem("site-theme") === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      } catch (e) {
+        /* 隐私模式 / 存储被禁用：保持默认深色 */
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/roam.css">
+</head>
+<body class="rbody">
+
+  <!-- 入场柔光（纯装饰层）：动画失败时默认不可见，不会遮挡内容 -->
+  <div class="rwarp" aria-hidden="true"></div>
+
+  <!-- ========== 顶部吸顶条 ========== -->
+  <div class="rbar">
+    <a class="rbar__back" href="index.html#life">
+      <span class="rbar__arrow" aria-hidden="true">←</span>返回主线
+    </a>
+    <span class="rbar__progress" id="roamProgress" aria-hidden="true"></span>
+  </div>
+
+  <main class="rmain">
+
+    <!-- ========== ① 开场（文案逐字取自你提供的引言） ========== -->
+    <section class="rsec rsec--alt rsec--deco" aria-label="开场">
+      <!-- 背景装饰（纯装饰层，暖调随主题）：方格纸 / 太阳虚线光斑 / 云朵 / 咖啡与热气 / 雨点 -->
+      <div class="rdeco rdeco--life" aria-hidden="true">
+        <span class="rdeco__glow rdeco__glow--a"></span>
+        <span class="rdeco__glow rdeco__glow--b"></span>
+        <svg class="rdeco__svg" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <path class="rdeco__dash rdeco__dash--flow" d="M-20,132 C140,86 300,196 470,146 C640,96 800,190 970,140 C1080,108 1170,132 1230,116"></path>
+          <path class="rdeco__dash rdeco__dash--flow" d="M-20,712 C120,660 280,762 450,708 C620,654 780,758 950,704 C1070,666 1160,700 1230,676"></path>
+          <path class="rdeco__dash rdeco__dash--fade" d="M292,468 C408,392 548,516 692,440 C800,382 902,436 1002,392"></path>
+          <circle class="rdeco__spark" cx="186" cy="240" r="3.2"></circle>
+          <circle class="rdeco__spark" cx="352" cy="178" r="2.4"></circle>
+          <circle class="rdeco__spark" cx="588" cy="318" r="3.6"></circle>
+          <circle class="rdeco__spark" cx="744" cy="232" r="2.6"></circle>
+          <circle class="rdeco__spark" cx="868" cy="332" r="4"></circle>
+          <circle class="rdeco__spark" cx="1026" cy="258" r="2.8"></circle>
+          <circle class="rdeco__spark" cx="500" cy="626" r="3"></circle>
+        </svg>
+      </div>
+      <div class="rsec__inner">
+        <header class="rsec__head" data-reveal>
+          <p class="rstep">01 / 开场</p>
+          <h1 class="rtitle">生活漫游 <span class="reyebrow">Life Roaming</span></h1>
+        </header>
+
+        <p class="rlead" data-reveal>除旋律之外，生活亦是一场无尽的探索。</p>
+        <p class="rnote" data-reveal>在影像叙事里穿行人间故事，在文字书页中沉淀思绪，于街巷烟火、山海旅途、赛场热血中感知百态；深耕网页设计的美学构建，探索 AI 工具的无限可能，在多元热爱里，持续解锁生活的全新维度。</p>
+        <p class="rnote" data-reveal>每一份热忱，都是奔赴世界的温柔漫游。</p>
+      </div>
+    </section>
+
+    <!-- ========== ② 八张兴趣翻牌卡（本页核心交互） ==========
+         每张卡整体就是一个 <button>：点击 / 回车 / 空格翻面，aria-pressed 同步正反面状态（Esc 可翻回正面）；
+         正反面共用同一网格单元，卡高取两面较高者，文案不会被裁切；
+         背面「我的漫游清单」= 真实清单：实线标签（长文本自动换行）+ 整句漫游注记（城市行走 / 远方旅途两卡）。
+         卡片顺序与主线「生活漫游」板块的文案节奏一致；
+         轮23：八张卡改为「悬浮式横向轨道」——毛玻璃卡面 + 悬浮上浮，
+         可滚轮横滑 / 鼠标拖动 / 左右按钮 / 键盘 Tab 逐张聚焦，两端带渐变遮罩提示（触屏走原生横滑）。 -->
+    <section class="rsec rsec--deco" aria-label="八大兴趣卡片">
+      <!-- 背景装饰（纯装饰层）：方格纸 / 便签横线 / 圆点 / 叶子 / 星星 / 城市天际线 / 雨点 -->
+      <div class="rdeco rdeco--life" aria-hidden="true">
+        <span class="rdeco__glow rdeco__glow--c"></span>
+        <span class="rdeco__glow rdeco__glow--d"></span>
+        <svg class="rdeco__svg" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <path class="rdeco__dash rdeco__dash--flow" d="M-20,96 C150,140 320,58 490,104 C660,150 830,68 1000,112 C1110,140 1180,124 1230,132"></path>
+          <path class="rdeco__dash rdeco__dash--fade" d="M240,690 C372,632 486,742 636,682 C760,632 872,708 1010,656"></path>
+          <path class="rdeco__dash rdeco__dash--fade" d="M176,392 C300,336 402,438 540,384"></path>
+          <path class="rdeco__dash rdeco__dash--fade" d="M742,470 C860,414 962,506 1104,448"></path>
+          <circle class="rdeco__spark" cx="164" cy="214" r="3"></circle>
+          <circle class="rdeco__spark" cx="304" cy="300" r="2.4"></circle>
+          <circle class="rdeco__spark" cx="446" cy="196" r="3.4"></circle>
+          <circle class="rdeco__spark" cx="596" cy="286" r="2.6"></circle>
+          <circle class="rdeco__spark" cx="742" cy="188" r="3.8"></circle>
+          <circle class="rdeco__spark" cx="892" cy="284" r="2.6"></circle>
+          <circle class="rdeco__spark" cx="1042" cy="206" r="3.2"></circle>
+          <circle class="rdeco__spark" cx="404" cy="596" r="3"></circle>
+          <circle class="rdeco__spark" cx="828" cy="620" r="2.6"></circle>
+        </svg>
+      </div>
+      <div class="rsec__inner">
+        <header class="rsec__head" data-reveal>
+          <p class="rstep">02 / 兴趣卡片</p>
+          <h2 class="rtitle">八大兴趣漫游 <span class="reyebrow">Eight Hobbies</span></h2>
+        </header>
+
+        <p class="rhint" data-reveal>点击卡片，解锁多元生活漫游</p>
+
+        <!-- 悬浮式横向轨道：轨道容器可聚焦（左右方向键可滚），首尾渐变遮罩由 JS 切换 -->
+        <div class="lrailwrap" data-rail-wrap>
+          <div class="lrail" id="lifeRail" role="group" aria-label="八大兴趣翻牌卡（可横向滑动浏览）" tabindex="0">
+            <!-- 1 / 影像叙事 -->
+            <article class="lcard" data-reveal>
+              <button class="lcard__flip" type="button" aria-pressed="false">
+                <span class="lcard__inner">
+                  <span class="lcard__face lcard__face--front">
+                    <span class="lcard__emoji" aria-hidden="true">🎬</span>
+                    <span class="lcard__name">影像叙事</span>
+                    <span class="lcard__tags">电影 · 剧集 · 喜剧</span>
+                    <span class="lcard__line">于银幕之间，漫游众生百态</span>
+                    <span class="lcard__cue">点击翻面</span>
+                  </span>
+                  <span class="lcard__face lcard__face--back">
+                    <span class="lcard__back-name">影像叙事</span>
+                    <span class="lcard__desc">流连光影构筑的多元世界，既沉浸影视长片完整的叙事脉络，在一个个情景剧中感受友情、亲情、爱情的不同表达，体味不同人生的悲欢起落；也偏爱喜剧的戏谑解构，以松弛通透的视角解读时代与生活。借镜头跨越时空，在一幕幕影像里，完成一场场沉浸式的精神远行。</span>
+                    <span class="lcard__rule" aria-hidden="true"></span>
+                    <span class="lcard__sample-label">我的漫游清单</span>
+                    <span class="lcard__samples">
+                      <span class="lcard__sample">神烦警探</span>
+                      <span class="lcard__sample">摩登家庭</span>
+                      <span class="lcard__sample">港剧</span>
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </article>
+
+            <!-- 2 / 文字漫游 -->
+            <article class="lcard" data-reveal>
+              <button class="lcard__flip" type="button" aria-pressed="false">
+                <span class="lcard__inner">
+                  <span class="lcard__face lcard__face--front">
+                    <span class="lcard__emoji" aria-hidden="true">📖</span>
+                    <span class="lcard__name">文字漫游</span>
+                    <span class="lcard__tags">阅读 · 随笔</span>
+                    <span class="lcard__line">于书页之中，邂逅万千思绪</span>
+                    <span class="lcard__cue">点击翻面</span>
+                  </span>
+                  <span class="lcard__face lcard__face--back">
+                    <span class="lcard__back-name">文字漫游</span>
+                    <span class="lcard__desc">书页是静谧且辽阔的漫游天地。在文字间穿行不同的思想维度，品读他人的阅历与感悟，也以随笔记录自我的所见所感。以文字沉淀心境、丰盈认知，让每一次阅读与书写，都是一场向内的探索与生长。</span>
+                    <span class="lcard__rule" aria-hidden="true"></span>
+                    <span class="lcard__sample-label">我的漫游清单</span>
+                    <span class="lcard__samples">
+                      <span class="lcard__sample">我的天才女友</span>
+                      <span class="lcard__sample">米格尔街</span>
+                      <span class="lcard__sample">马尔瓦可多</span>
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </article>
+
+            <!-- 3 / 城市行走 -->
+            <article class="lcard" data-reveal>
+              <button class="lcard__flip" type="button" aria-pressed="false">
+                <span class="lcard__inner">
+                  <span class="lcard__face lcard__face--front">
+                    <span class="lcard__emoji" aria-hidden="true">🚶</span>
+                    <span class="lcard__name">城市行走</span>
+                    <span class="lcard__tags">街巷漫游 · 日常观察</span>
+                    <span class="lcard__line">漫步烟火街巷，捕捉日常温柔</span>
+                    <span class="lcard__cue">点击翻面</span>
+                  </span>
+                  <span class="lcard__face lcard__face--back">
+                    <span class="lcard__back-name">城市行走</span>
+                    <span class="lcard__desc">偏爱无目的的城市漫游。穿梭街头巷尾，观察人间烟火的细碎模样，捕捉四季更迭、市井往来的温柔瞬间。行走从无需既定终点，步履所至，皆是对平凡生活的温柔探索。</span>
+                    <span class="lcard__rule" aria-hidden="true"></span>
+                    <span class="lcard__sample-label">我的漫游清单</span>
+                    <span class="lcard__note">城市不断更新，总有没看够没走够的城市角落。</span>
+                  </span>
+                </span>
+              </button>
+            </article>
+
+            <!-- 4 / 视觉观览 -->
+            <article class="lcard" data-reveal>
+              <button class="lcard__flip" type="button" aria-pressed="false">
+                <span class="lcard__inner">
+                  <span class="lcard__face lcard__face--front">
+                    <span class="lcard__emoji" aria-hidden="true">🎨</span>
+                    <span class="lcard__name">视觉观览</span>
+                    <span class="lcard__tags">展览 · 艺术影像</span>
+                    <span class="lcard__line">凝望艺术万象，感知视觉回响</span>
+                    <span class="lcard__cue">点击翻面</span>
+                  </span>
+                  <span class="lcard__face lcard__face--back">
+                    <span class="lcard__back-name">视觉观览</span>
+                    <span class="lcard__desc">驻足各类艺术展览与影像作品，在色彩、构图、光影与创意表达中，触碰艺术的多元魅力。跳出固有认知，接纳不同风格的审美表达，在静态画面与艺术叙事里，完成一场治愈且丰盈的视觉漫游。</span>
+                    <span class="lcard__rule" aria-hidden="true"></span>
+                    <span class="lcard__sample-label">我的漫游清单</span>
+                    <span class="lcard__samples">
+                      <span class="lcard__sample">美术馆</span>
+                      <span class="lcard__sample">博物馆</span>
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </article>
+
+            <!-- 5 / 竞技观赛 -->
+            <article class="lcard" data-reveal>
+              <button class="lcard__flip" type="button" aria-pressed="false">
+                <span class="lcard__inner">
+                  <span class="lcard__face lcard__face--front">
+                    <span class="lcard__emoji" aria-hidden="true">⚽</span>
+                    <span class="lcard__name">竞技观赛</span>
+                    <span class="lcard__tags">体育赛事</span>
+                    <span class="lcard__line">奔赴赛场山海，邂逅热血博弈</span>
+                    <span class="lcard__cue">点击翻面</span>
+                  </span>
+                  <span class="lcard__face lcard__face--back">
+                    <span class="lcard__back-name">竞技观赛</span>
+                    <span class="lcard__desc">沉醉体育赛事独有的竞技魅力。凝望赛场之上的全力以赴、攻守博弈与逆风翻盘，感受热爱、坚持与团队协作的滚烫力量。在胜负起落、热血瞬间里，读懂坚守的意义，解锁生活之外的热烈浪漫。</span>
+                    <span class="lcard__rule" aria-hidden="true"></span>
+                    <span class="lcard__sample-label">我的漫游清单</span>
+                    <span class="lcard__samples">
+                      <span class="lcard__sample">F1</span>
+                      <span class="lcard__sample">花样滑冰</span>
+                      <span class="lcard__sample">网球</span>
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </article>
+
+            <!-- 6 / 烟火食味 -->
+            <article class="lcard" data-reveal>
+              <button class="lcard__flip" type="button" aria-pressed="false">
+                <span class="lcard__inner">
+                  <span class="lcard__face lcard__face--front">
+                    <span class="lcard__emoji" aria-hidden="true">🍜</span>
+                    <span class="lcard__name">烟火食味</span>
+                    <span class="lcard__tags">美食探索</span>
+                    <span class="lcard__line">细品人间百味，邂逅烟火浪漫</span>
+                    <span class="lcard__cue">点击翻面</span>
+                  </span>
+                  <span class="lcard__face lcard__face--back">
+                    <span class="lcard__back-name">烟火食味</span>
+                    <span class="lcard__desc">食物是生活最朴素的治愈与浪漫。探索各地风味吃食，感受不同地域的饮食文化与烟火气息，在一餐一饭、一味一甜中感知生活暖意。以味蕾为媒介，漫游人间烟火，接纳世间温柔百态。</span>
+                    <span class="lcard__rule" aria-hidden="true"></span>
+                    <span class="lcard__sample-label">我的漫游清单</span>
+                    <span class="lcard__samples">
+                      <span class="lcard__sample">粤菜</span>
+                      <span class="lcard__sample">江浙菜</span>
+                      <span class="lcard__sample">各式精致的小甜品</span>
+                      <span class="lcard__sample">品尝各地美食</span>
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </article>
+
+            <!-- 7 / 远方旅途 -->
+            <article class="lcard" data-reveal>
+              <button class="lcard__flip" type="button" aria-pressed="false">
+                <span class="lcard__inner">
+                  <span class="lcard__face lcard__face--front">
+                    <span class="lcard__emoji" aria-hidden="true">✈️</span>
+                    <span class="lcard__name">远方旅途</span>
+                    <span class="lcard__tags">旅行漫游</span>
+                    <span class="lcard__line">踏遍山河万里，漫游世间风物</span>
+                    <span class="lcard__cue">点击翻面</span>
+                  </span>
+                  <span class="lcard__face lcard__face--back">
+                    <span class="lcard__back-name">远方旅途</span>
+                    <span class="lcard__desc">奔赴山海远方，解锁未知的天地与风景。穿行不同城市与地域，领略各异的山河风物、人文风情与市井温度。旅途的意义从不止于抵达，更在于沿途的遇见、感知与全新的生活探索。</span>
+                    <span class="lcard__rule" aria-hidden="true"></span>
+                    <span class="lcard__sample-label">我的漫游清单</span>
+                    <span class="lcard__note">不断拓展旅行版图中，故地重游也别有一番风味。</span>
+                  </span>
+                </span>
+              </button>
+            </article>
+
+            <!-- 8 / 创意探索 -->
+            <article class="lcard" data-reveal>
+              <button class="lcard__flip" type="button" aria-pressed="false">
+                <span class="lcard__inner">
+                  <span class="lcard__face lcard__face--front">
+                    <span class="lcard__emoji" aria-hidden="true">💻</span>
+                    <span class="lcard__name">创意探索</span>
+                    <span class="lcard__tags">网页设计 · AI工具</span>
+                    <span class="lcard__line">深耕创意美学，探索科技边界</span>
+                    <span class="lcard__cue">点击翻面</span>
+                  </span>
+                  <span class="lcard__face lcard__face--back">
+                    <span class="lcard__back-name">创意探索</span>
+                    <span class="lcard__desc">在代码与美学之间深耕，探索网页设计的构图逻辑、视觉节奏与交互浪漫。同时拥抱AI科技工具，以新技术赋能创意表达，打破固有创作边界，在理性技术与感性审美之间，完成一场持续的创意漫游与自我迭代。</span>
+                    <span class="lcard__rule" aria-hidden="true"></span>
+                    <span class="lcard__sample-label">我的漫游清单</span>
+                    <span class="lcard__samples">
+                      <span class="lcard__sample">个人主页项目</span>
+                      <span class="lcard__sample">AI辅助语言学习</span>
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </article>
+          </div>
+
+          <button class="lrail__nav lrail__nav--prev" type="button" aria-label="上一张卡片">‹</button>
+          <button class="lrail__nav lrail__nav--next" type="button" aria-label="下一张卡片">›</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== ③ 返回主线 ========== -->
+    <section class="rsec rsec--alt rsec--deco" aria-label="返回主线">
+      <!-- 背景装饰（纯装饰层）：太阳虚线光斑 / 圆点 / 柔和发光节点 / 手绘山脊线 + 星星 -->
+      <div class="rdeco rdeco--life" aria-hidden="true">
+        <span class="rdeco__glow rdeco__glow--e"></span>
+        <span class="rdeco__glow rdeco__glow--f"></span>
+        <svg class="rdeco__svg" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <path class="rdeco__dash rdeco__dash--flow" d="M-20,596 C140,540 300,650 470,596 C640,542 800,646 970,592 C1090,554 1180,588 1230,566"></path>
+          <path class="rdeco__dash rdeco__dash--fade" d="M330,282 C452,222 566,318 706,258 C812,212 906,262 1016,222"></path>
+          <path class="rdeco__dash rdeco__dash--fade" d="M220,452 C338,398 446,486 588,432"></path>
+          <circle class="rdeco__spark" cx="226" cy="252" r="3"></circle>
+          <circle class="rdeco__spark" cx="396" cy="330" r="2.4"></circle>
+          <circle class="rdeco__spark" cx="588" cy="242" r="3.6"></circle>
+          <circle class="rdeco__spark" cx="782" cy="320" r="2.6"></circle>
+          <circle class="rdeco__spark" cx="980" cy="252" r="3.2"></circle>
+          <circle class="rdeco__spark" cx="676" cy="566" r="2.8"></circle>
+        </svg>
+      </div>
+      <div class="rsec__inner">
+        <div class="routro">
+          <p class="ractions" data-reveal>
+            <a class="btn btn--primary" href="index.html#life">返回主线</a>
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="js/roam.js"></script>
+</body>
+</html>

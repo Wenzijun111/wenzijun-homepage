@@ -1,0 +1,350 @@
+/* ============================================================
+   V3 私密反馈 · 样式（课程需求 CRS-5 · 轮32 新建）
+   ------------------------------------------------------------
+   只服务首页右下角那个「意见反馈」浮动入口与它弹出的面板。
+   全部颜色 / 圆角 / 阴影都走 css/style.css 里已有的设计变量，
+   因此深色与亮色两套主题自动适配，不需要在这里再写一遍颜色。
+   层次约定：入口 950 < 面板 960 < 全局提示条 toast 1000
+   （这样「已发送成功」的提示会浮在面板之上，访客一定看得见）。
+   改动记录：轮32（V3）新建。
+   ============================================================ */
+
+/* ---------- 右下角浮动入口 ---------- */
+.fb-entry {
+  position: fixed;
+  right: 1.25rem;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  z-index: 950;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.05rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft-md);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.fb-entry:hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-soft-lg);
+  transform: translateY(-2px);
+}
+
+.fb-entry:focus-visible {
+  outline: 2px solid var(--color-accent-strong);
+  outline-offset: 2px;
+}
+
+.fb-entry__icon {
+  display: inline-flex;
+  width: 1.15rem;
+  height: 1.15rem;
+  color: var(--color-accent);
+}
+
+.fb-entry__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- 遮罩层（同时负责「点空白关闭」的命中区） ---------- */
+.fb-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 960;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  overflow-y: auto;
+  /* 复用全站遮罩变量：深色主题压暗、亮色主题提亮，两套主题都成立 */
+  background: var(--color-overlay-strong);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+/* 必须显式写：上面的 display:flex 会盖掉 <div hidden> 的默认 display:none */
+.fb-overlay[hidden] {
+  display: none;
+}
+
+/* ---------- 面板 ---------- */
+.fb-dialog {
+  width: min(34rem, 100%);
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft-lg);
+}
+
+.fb-dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.9rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.fb-dialog__title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+}
+
+.fb-dialog__eyebrow {
+  margin-left: 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.fb-dialog__close {
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.fb-dialog__close:hover {
+  color: var(--color-text);
+  border-color: var(--color-accent);
+}
+
+.fb-dialog__close:focus-visible {
+  outline: 2px solid var(--color-accent-strong);
+  outline-offset: 2px;
+}
+
+.fb-dialog__lead {
+  margin-bottom: 0.85rem;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--color-text-muted);
+}
+
+/* 隐私说明：左侧一道强调色细线，与全站的「硬朗块面」基调一致，不用圆润气泡 */
+.fb-privacy {
+  margin-bottom: 1.1rem;
+  padding: 0.65rem 0.85rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-left: 2px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--color-text-muted);
+}
+
+.fb-privacy strong {
+  color: var(--color-text);
+}
+
+/* ---------- 表单 ---------- */
+.fb-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.fb-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.fb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.fb-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.fb-label__opt {
+  margin-left: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.fb-input,
+.fb-select,
+.fb-area {
+  width: 100%;
+  min-width: 0; /* 网格项不设 min-width 会被内容顶破（同 .chat__input / .parlor__input 的历史教训） */
+  padding: 0.65rem 0.85rem;
+  background: var(--color-bg); /* 比面板再沉一档，形成「可填写区」与「面板底」的层次 */
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.fb-area {
+  min-height: 6rem;
+  resize: vertical; /* 只允许上下拉高，避免横向拖动破坏布局 */
+}
+
+.fb-input::placeholder,
+.fb-area::placeholder {
+  color: var(--color-text-muted);
+}
+
+.fb-input:focus,
+.fb-select:focus,
+.fb-area:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+/* 键盘访问时额外给一圈可见轮廓（比单纯的描边变色更明确） */
+.fb-input:focus-visible,
+.fb-select:focus-visible,
+.fb-area:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+/* 下拉项在深色主题下的可读性（部分浏览器会沿用系统配色） */
+.fb-select option {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.fb-count {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+/* ---------- 提交区 ---------- */
+.fb-foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.fb-status {
+  flex: 1 1 12rem;
+  min-width: 0;
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+.fb-status:empty {
+  display: none;
+}
+
+/* 与「我的会客厅」留言板同一套状态色约定（is-warn = 加粗 + 强调色） */
+.fb-status.is-warn {
+  font-weight: 600;
+  color: var(--color-accent-strong);
+}
+
+.fb-status.is-ok {
+  font-weight: 600;
+  color: var(--grade-1);
+}
+
+/* 状态行隐藏时按钮仍要靠右，所以用 margin-left:auto 而不是 space-between */
+.fb-send {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.fb-fallback {
+  margin-top: 0.9rem;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--color-text-muted);
+}
+
+.fb-fallback[hidden] {
+  display: none;
+}
+
+.fb-fallback a {
+  color: var(--color-accent-strong);
+  border-bottom: 1px solid var(--color-accent);
+}
+
+/* ---------- 小屏适配 ---------- */
+@media (max-width: 768px) {
+  .fb-entry {
+    right: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    padding: 0.6rem 0.9rem;
+    font-size: 0.88rem;
+  }
+
+  .fb-overlay {
+    padding: 0.9rem;
+    align-items: flex-start;
+  }
+
+  .fb-dialog {
+    max-height: 90vh;
+    padding: 1.15rem;
+  }
+
+  .fb-dialog__title {
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .fb-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- 减弱动效偏好 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .fb-entry,
+  .fb-dialog__close {
+    transition: none;
+  }
+
+  .fb-entry:hover {
+    transform: none;
+  }
+}
