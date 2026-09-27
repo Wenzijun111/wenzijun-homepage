@@ -23,10 +23,11 @@
    ============================================================ */
 window.LIVING_ROOM_CONFIG = {
   // 例：https://abcdefghijklmn.supabase.co （末尾不要带斜杠）
-  supabaseUrl: "",
+  supabaseUrl: "https://nsrbxqubwhoemeyzdxtw.supabase.co",
 
-  // Supabase 控制台 → Project Settings → API → Project API keys → anon public
-  supabaseAnonKey: "",
+  // Supabase 控制台 → Project Settings → API Keys → publishable key
+  //（旧版控制台里叫 anon public；两者等价，真正的能力边界由 RLS 决定）
+  supabaseAnonKey: "sb_publishable_nOBwBKZtpKG10gkrKEzOTw_GO8qN47R",
 
   // 数据表名（与建表 SQL 保持一致，通常无需修改）
   table: "messages"
