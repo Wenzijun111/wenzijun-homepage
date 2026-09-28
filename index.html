@@ -582,8 +582,23 @@
 
         <div class="fb-field">
           <label class="fb-label" for="fbMessage">想说的话</label>
+          <!-- 轮35（USR-47）：填写角度提示 —— 纯静态文本，只做「写什么」的引导，
+               不进提交 payload、不碰数据库；7 个角度对应用户给的 7 项 -->
+          <div class="fb-tips" id="fbTips">
+            <span class="fb-tips__lead">不知道写什么？可以从这些角度说说：</span>
+            <ul class="fb-tips__list">
+              <li>功能错误</li>
+              <li>可用性</li>
+              <li>内容表达</li>
+              <li>视觉设计</li>
+              <li>移动端/响应式</li>
+              <li>个人偏好</li>
+              <li>新功能建议</li>
+            </ul>
+          </div>
           <textarea class="fb-area" id="fbMessage" name="message" rows="5" maxlength="1000"
-            placeholder="第一眼看到了什么？哪里让你印象深刻、哪里还可以更好？或者只是打个招呼～"></textarea>
+            aria-describedby="fbTips"
+            placeholder="说说你的真实感受，越具体越好～"></textarea>
           <p class="fb-count" id="fbCount">最多 1000 字</p>
         </div>
 

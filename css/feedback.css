@@ -251,6 +251,42 @@
   text-align: right;
 }
 
+/* ---------- 填写角度提示（轮35 · USR-47）----------
+   纯文本引导：只告诉访客「可以写什么」，不是可点选的选项，
+   因此刻意不用按钮 / 胶囊外观，避免让人误以为需要点选。
+   7 项之间的「·」由 CSS 生成，方便换行（移动端自动折行、不溢出）。 */
+.fb-tips {
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--color-text-muted);
+}
+
+.fb-tips__lead {
+  display: block;
+}
+
+.fb-tips__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fb-tips__list li {
+  display: inline-flex;
+  align-items: baseline;
+  white-space: nowrap; /* 单个角度（如「移动端/响应式」）不从中断开 */
+}
+
+.fb-tips__list li + li::before {
+  content: "·";
+  margin: 0 0.45em;
+  color: var(--color-border);
+}
+
 /* ---------- 提交区 ---------- */
 .fb-foot {
   display: flex;
