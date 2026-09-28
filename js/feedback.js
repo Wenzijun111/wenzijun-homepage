@@ -13,11 +13,45 @@
      · 零 innerHTML：所有用户输入一律 textContent 写进 DOM（从源头杜绝 XSS）；
      · 提交过程：提交中禁用按钮并改文案 → 成功才提示并清空；
                  失败保留已输入内容并给出「下一步该做什么」，绝不假装成功；
-     · 防重复提交：提交中加锁 + 同一段内容 20 秒内不重复发送。
-   改动记录：轮32（V3）新建。
+     · 防重复提交：提交中加锁 + 同一段内容 20 秒内不重复发送；
+     · 失败自证：网络层失败时自动做一次同域名轻量探测，区分
+                 「访问不到反馈服务器」与「提交被浏览器拦下」，并直接给出下一步（见 A 节）。
+   改动记录：轮32（V3）新建；轮36（V3）新增失败自证（离线 / 超时 / 探测 · 四档可执行提示）。
    ============================================================ */
 (function () {
   "use strict";
+
+  /* ---------- A. 失败自证（纯函数 · 不碰 DOM · 可在无浏览器环境单测） ---------- */
+  // 提交失败时，访客最想知道的是「下一步做什么」。这里把网络层失败分成四档，
+  // 每档只给一句结论 + 一个可执行动作；判定顺序先窄后宽：离线 → 超时 →
+  // 探测不通（访问不到服务器）→ 探测通过（服务器能访问，提交被浏览器拦下）。
+  // 该函数只吃「探测结果」，不发请求、不碰 DOM，因此可以用 cscript 跑判定表。
+  var FAIL_TEXT = {
+    offline: "设备当前好像没有联网。请连上网络后再试一次。",
+    timeout: "请求发出后一直没有回应（网络很慢，或被中途拦下）。可以换用手机流量或换一个浏览器再试一次。",
+    unreachable: "当前网络访问不到反馈服务器（校园网 / 公司网屏蔽，或浏览器自带的拦截、云加速都会这样）。可以换一个网络（例如手机流量）、换一个浏览器再试；也可以直接用下面的邮箱发给我。",
+    blocked: "反馈服务器能访问，但这条提交被浏览器拦下了（自带广告拦截 / 云加速的浏览器常见）。请换 Chrome 或 Safari 再试，也可以直接用下面的邮箱发给我。"
+  };
+
+  function diagnoseFail(env) {
+    env = env || {};
+    if (env.online === false) {
+      return FAIL_TEXT.offline;
+    }
+    if (env.timeout) {
+      return FAIL_TEXT.timeout;
+    }
+    if (env.probe === "fail") {
+      return FAIL_TEXT.unreachable;
+    }
+    if (env.probe === "ok") {
+      return FAIL_TEXT.blocked;
+    }
+    return "";
+  }
+
+  // 挂到 window：一是便于 cscript 离线判定表单测，二是便于日后在控制台自查
+  window.FEEDBACK_DIAG = { diagnoseFail: diagnoseFail, texts: FAIL_TEXT };
 
   /* ---------- 0. 元素与配置 ---------- */
   var entry = document.getElementById("fbEntry");
@@ -110,8 +144,10 @@
     if (/Invalid API key|No API key|JWT|401/i.test(detail)) {
       return "（publishable key 看起来无效：请核对 Project Settings → API Keys 里的 publishable key）";
     }
+    // 网络层（无响应）现在由 A 节 diagnoseFail() 给出更具体的结论；
+    // 这里保留一条兜底，措辞与 A 节保持一致，避免出现两套说法。
     if (/Failed to fetch|NetworkError|Load failed|ERR_|timeout/i.test(detail)) {
-      return "（先确认网络能访问 Supabase 域名，再试一次）";
+      return "（设备到反馈服务器的连接没能建立：可换一个网络（例如手机流量）或换一个浏览器再试；也可以直接用下面的邮箱发给我）";
     }
     return "";
   }
@@ -187,6 +223,10 @@
   msgInput.addEventListener("input", updateCount);
 
   /* ---------- 3. 提交 ---------- */
+  var SEND_TIMEOUT = 12000;  // 单次提交最多等 12 秒，超时按「网络无响应」归类
+  var PROBE_TIMEOUT = 6000;  // 同域名探测最多等 6 秒
+  var failSeq = 0;           // 失败序号：防止迟到的探测结论覆盖更新的状态
+
   function cloudError(res) {
     return res.text().then(function (text) {
       var message = "HTTP " + res.status;
@@ -204,8 +244,18 @@
     });
   }
 
+  function timeoutError() {
+    var err = new Error("timeout");
+    err.isTimeout = true;
+    return err;
+  }
+
   function sendCloud(payload) {
-    return window.fetch(baseUrl + "/rest/v1/" + encodeURIComponent(table), {
+    // 12 秒上限：网络被中途掐断时，浏览器可能长时间挂着不报错。
+    // 用 AbortController 真正中止请求；浏览器不支持时只做「超时判定」。
+    var controller = (typeof AbortController === "function") ? new AbortController() : null;
+    var timer = null;
+    var options = {
       method: "POST",
       headers: {
         apikey: publishableKey,
@@ -217,13 +267,116 @@
         Prefer: "return=minimal"
       },
       body: JSON.stringify(payload)
-    }).then(function (res) {
-      if (!res.ok) {
-        return cloudError(res).then(function (message) {
-          throw new Error(message);
-        });
+    };
+    if (controller) {
+      options.signal = controller.signal;
+    }
+
+    var guard = new Promise(function (resolve, reject) {
+      timer = setTimeout(function () {
+        if (controller) {
+          try {
+            controller.abort();
+          } catch (e) {
+            /* 中止失败不影响下面的超时判定 */
+          }
+        }
+        reject(timeoutError());
+      }, SEND_TIMEOUT);
+    });
+
+    var request = window.fetch(baseUrl + "/rest/v1/" + encodeURIComponent(table), options)
+      .then(function (res) {
+        if (!res.ok) {
+          return cloudError(res).then(function (message) {
+            throw new Error(message);
+          });
+        }
+        return true;
+      });
+
+    // 谁先结束谁生效；另一条的「迟到拒绝」在这里就地吞掉，
+    // 避免控制台出现 Unhandled rejection 噪音（项目探针要求 __errs 为空）。
+    request.catch(function () { /* 见上 */ });
+    guard.catch(function () { /* 见上 */ });
+
+    return Promise.race([request, guard]).then(function (result) {
+      clearTimeout(timer);
+      return result;
+    }, function (err) {
+      clearTimeout(timer);
+      throw err;
+    });
+  }
+
+  // 同域名轻量探测：no-cors + 不带 apikey，只求「连接是否建立」。
+  // 能拿到响应（哪怕是 401）就算「能访问」；抛错则视为「访问不到」。
+  // 它区分的是「网络/浏览器拦截」与「仅提交被拦」，读不到内容也不需要读。
+  function probeHost() {
+    var timer = null;
+    var guard = new Promise(function (resolve) {
+      timer = setTimeout(function () {
+        resolve("fail");
+      }, PROBE_TIMEOUT);
+    });
+    var probe = window.fetch(baseUrl + "/rest/v1/", {
+      method: "GET",
+      mode: "no-cors",
+      cache: "no-store"
+    }).then(function () {
+      return "ok";
+    }, function () {
+      return "fail";
+    });
+    guard.catch(function () { /* 见上 */ });
+    return Promise.race([probe, guard]).then(function (result) {
+      clearTimeout(timer);
+      return result;
+    });
+  }
+
+  // 结论 + 原始英文错误：结论好懂，原始错误留作日后排查的线索
+  function showDiag(text, detail) {
+    var tail = detail ? "（技术详情：" + detail + "）" : "";
+    setStatus("反馈没能发出去：" + text + tail, "warn");
+    showFallback(true);
+  }
+
+  // 把「原始错误」翻译成访客能照做的提示：
+  //   有 HTTP 响应 → 沿用既有 explain()（权限 / 表 / 格式 / 列名 / 键）；
+  //   没有响应（网络层）→ 走 A 节 diagnoseFail()，必要时先探测一次再下结论。
+  function failWith(err) {
+    var detail = (err && err.message) ? err.message : String(err);
+    var seq = ++failSeq;
+    var online = (typeof navigator === "undefined" || navigator.onLine !== false);
+
+    // ① 超时：请求发出去一直没有回应
+    if (err && err.isTimeout) {
+      showDiag(diagnoseFail({ online: online, timeout: true }), detail);
+      return;
+    }
+
+    // ② 有 HTTP 响应：服务器已经回话，这一段沿用原有格式（含 HTTP 状态码与原文）
+    if (!/Failed to fetch|NetworkError|Load failed|ERR_/i.test(detail)) {
+      setStatus("反馈没能发出去：" + detail + explain(detail), "warn");
+      showFallback(true);
+      return;
+    }
+
+    // ③ 没联网：直接下结论，不额外发探测请求
+    if (!online) {
+      showDiag(diagnoseFail({ online: false }), detail);
+      return;
+    }
+
+    // ④ 联网但没拿到响应：先探测同域名，再区分「访问不到」与「提交被拦」
+    setStatus("反馈没能发出去：正在确认原因…", "warn");
+    showFallback(true);
+    probeHost().then(function (probe) {
+      if (seq !== failSeq) {
+        return; // 期间访客已重试或已有更新结论，丢弃这次结果
       }
-      return true;
+      showDiag(diagnoseFail({ online: online, probe: probe }), detail);
     });
   }
 
@@ -299,9 +452,7 @@
       }
     }).catch(function (err) {
       // 失败：保留访客已经写好的全部内容，只提示原因与下一步
-      var detail = err && err.message ? err.message : String(err);
-      setStatus("反馈没能发出去：" + detail + explain(detail), "warn");
-      showFallback(true);
+      failWith(err);
       toast("没发出去，内容还在，可以再试一次");
     }).then(function () {
       if (busy) {
