@@ -5,7 +5,7 @@
   <!-- 课程硬性约束 #4：viewport 保证移动端适配 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="温梓君的个人主页，思考人与 AI 的协作，记录大项目课程的学习与实践迭代。">
-  <title>温梓君 · 个人主页 V3</title>
+  <title>温梓君 · 个人主页 V4</title>
   <!-- Web Font：Noto Sans SC 适配中文，多字重区分标题与正文（离线时回退系统字体） -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,8 +31,9 @@
 </head>
 <!--
   ============================================================
-  温梓君个人主页 · Version V3
+  温梓君个人主页 · Version V4
   历程：V1-MVP 原型 → V2 打磨（主题切换 / 音乐·生活副页）→ V3 私密反馈接入 + 公开发布
+        → V4 反馈驱动迭代（轮37 起 · 进行中）
   === V1 时期预留、原定于 V2 实现的规划（保留作历史记录；行尾为 2026-09-27 现状） ===
   - 平滑滚动美化        —— 未做（css/style.css 里 scroll-behavior 仍为 auto）
   - 深色 / 亮色切换 UI  —— 已完成（顶栏主题开关 .theme-switch）
@@ -43,10 +44,10 @@
 -->
 <body>
 
-  <!-- ========== 顶部原型状态横幅（V1 起保留；文案随版本更新，现为 V3） ========== -->
+  <!-- ========== 顶部原型状态横幅（V1 起保留；文案随版本更新，现为 V4） ========== -->
   <div class="prototype-banner" role="note" aria-label="原型状态横幅">
     <span class="prototype-banner__dot" aria-hidden="true"></span>
-    Version V3 · Iterative Work-in-Progress
+    Version V4 · Iterative Work-in-Progress
   </div>
 
   <!-- ========== Header：品牌 + 导航 + 行动按钮 ========== -->
@@ -102,7 +103,7 @@
           <span class="hero__avatar-text">WZJ</span>
         </div>
 
-        <p class="hero__eyebrow">Personal Site · V3</p>
+        <p class="hero__eyebrow">Personal Site · V4</p>
 
         <h1 class="hero__title">
           温梓君的探索之境
@@ -402,14 +403,14 @@
             <div class="project-card__tags">
               <span class="tag project-tag">个人网站</span>
               <span class="tag project-tag">HTML/CSS/JS</span>
-              <span class="tag project-tag">V3</span>
+              <span class="tag project-tag">V4</span>
             </div>
             <h3 class="project-card__title">迭代式个人主页</h3>
             <p class="project-card__desc">
               本页面即当前项目：一个可发布、可反馈、可持续迭代的个人主页。
             </p>
             <p class="project-card__desc">
-              从「能看」的 V1 原型起步，逐步接入反馈与公开发布（V2 打磨、V3 反馈 + 发布、V4 反馈驱动改进）。
+              从「能看」的 V1 原型起步，逐步接入反馈与公开发布（V2 打磨、V3 反馈 + 发布、V4 反馈驱动改进 · 进行中）。
             </p>
             <p class="project-card__note">项目状态：进行中 · 迭代式开发中，并持续收集反馈。</p>
           </article>
@@ -502,14 +503,14 @@
   <!-- ========== Footer ========== -->
   <footer class="footer">
     <div class="footer__inner">
-      <p class="footer__version">页面版本：V3</p>
+      <p class="footer__version">页面版本：V4</p>
       <p class="footer__email">邮箱：<a href="mailto:wenzijun@tju.edu.cn">wenzijun@tju.edu.cn</a></p>
       <p class="footer__slogan">探索自我 · 探索世界 · 探索未来</p>
       <div class="footer__declaration">
         <p>Built with HTML / CSS / Vanilla JS</p>
-        <p>This site evolves iteratively, updates coming in V4</p>
+        <p>This site evolves iteratively, updates coming in V5</p>
       </div>
-      <p class="footer__copyright">© <span id="year">2026</span> 温梓君 · 个人主页 V3</p>
+      <p class="footer__copyright">© <span id="year">2026</span> 温梓君 · 个人主页 V4</p>
     </div>
   </footer>
 
@@ -521,7 +522,7 @@
        ② 数据源：js/feedback-config.js —— 填好 Supabase 两项即接通云端；
           未接通时如实提示「通道未接通」并亮出邮件兜底，绝不假装发送成功；
        ③ 字段按课程要求：称呼（选填）/ 你与我的关系 / 这次使用的设备 / 想说的话，
-          页面版本（V3）由脚本自动附带，便于日后按版本归类反馈；
+          页面版本（V4）由脚本自动附带，便于日后按版本归类反馈；
        ④ 全程零 innerHTML：访客输入一律以 textContent 写入，从源头杜绝 XSS。 -->
   <button class="fb-entry" id="fbEntry" type="button" aria-expanded="false" aria-controls="fbOverlay">
     <span class="fb-entry__icon" aria-hidden="true">
