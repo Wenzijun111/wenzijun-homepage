@@ -1057,7 +1057,60 @@ html.js-hero-canvas .hero::before {
 }
 
 .section--alt {
-  background: var(--color-bg-alt);
+  /* 轮38（F-01）：由 background 简写改为 background-color ——
+     简写会把挂到 .section 上的板块弥散光晕（background-image）一并重置为 none，
+     导致「隔一个版块就少一层光晕」。只换这一个属性，原有视觉不变。 */
+  background-color: var(--color-bg-alt);
+}
+
+/* ---------- 轮38（F-01）：板块级色相 ----------
+   反馈原话 F-01（MAY / 家人 / 电脑）：「色彩搭配比较深沉，建议可以结合不同版块的
+   内容进行色彩的设计，让视觉效果更好」。
+   采纳口径 = 部分采纳：不做整体调色（深色叙事是本站刻意的设计语言），
+   只在板块级引入色相差异 —— 相邻板块的光晕与标题强调线条呈现可辨识的色相，
+   长页面滚动时可凭颜色感知「自己现在在哪一板块」。
+
+   色相取值不新增颜色：这里只做「别名」，全部指向站点既有的两套
+   已经过对比度验证的色板（「关于我」四卡 --about-hue-1..4 与
+   「四年探索之旅」四级 --grade-1..4）。写在与主题无关的位置，
+   因此亮色主题会自动取到那两套变量里压深一档的取值，深浅双主题各有一套。
+
+   落点两处，均遵守本站既有策略「色相只用于装饰层，不进入正文文字层级」：
+     ① .section 的弥散光晕 —— 用 background-image 图层实现，不用新伪元素：
+        背景永远画在内容之下，因此不会压到文字，也没有 z-index / position 风险。
+     ② .section__head 的 3px 强调线条。 */
+:root {
+  --sec-cool-blue: var(--about-hue-1);   /* 冷蓝 */
+  --sec-teal: var(--about-hue-2);        /* 青灰 */
+  --sec-violet: var(--about-hue-3);      /* 淡紫灰 */
+  --sec-sand: var(--about-hue-4);        /* 砂金灰 */
+  --sec-green: var(--grade-1);           /* 新绿 */
+  --sec-amber: var(--grade-2);           /* 暖黄 */
+  --sec-orange: var(--grade-3);          /* 橙 */
+  --sec-steel: var(--grade-4);           /* 冷蓝（偏钢蓝） */
+}
+
+/* 板块按文档顺序交替取不同色相族。这个顺序是「深浅双主题联合最优」求出来的
+   （穷举 8! 种排法，见 .deepworks/tmp/v4/pick_hues.py）：8 个版块的顺序只有一种，
+   而两套主题色板的相近组合并不相同，所以必须同时对两套求解 ——
+   只按深色主题排，深色最小相邻色差 83.5 很漂亮，亮色主题却只有 58.9
+   （青灰 #2f5c57 与 新绿 #2f6b45 压深后只差 23.4）。
+   联合最优解：深色/亮色主题的相邻色差最小值都是 79.1，单通道最小差 65 / 74。 */
+#about { --sec-hue: var(--sec-cool-blue); }
+#timeline { --sec-hue: var(--sec-sand); }
+#livingroom { --sec-hue: var(--sec-steel); }
+#music { --sec-hue: var(--sec-green); }
+#life { --sec-hue: var(--sec-orange); }
+#projects { --sec-hue: var(--sec-teal); }
+#chat { --sec-hue: var(--sec-amber); }
+#outro { --sec-hue: var(--sec-violet); }
+/* 注：终页的「联系我」子区块不是 .section（class 是 contact outro__contact），
+   用的是它自己那套 .contact 样式，因此不在本次板块色相的范围内。 */
+
+.section {
+  background-image: radial-gradient(ellipse 46% 34% at 86% 4%,
+      color-mix(in srgb, var(--sec-hue, transparent) 13%, transparent), transparent 70%);
+  background-repeat: no-repeat;
 }
 
 .section__inner {
@@ -1067,7 +1120,8 @@ html.js-hero-canvas .hero::before {
 
 .section__head {
   margin-bottom: 3rem;
-  border-bottom: 3px solid var(--color-text);
+  /* 轮38（F-01）：标题下的强调线条取板块色相；未设色相的版块回退到原来的正文色 */
+  border-bottom: 3px solid var(--sec-hue, var(--color-text));
   padding-bottom: 1.2rem;
 }
 
@@ -1290,6 +1344,27 @@ html.js-hero-canvas .hero::before {
   .about-card:active .about-card__label,
   .about-card:active .about-card__text {
     color: var(--color-on-accent);
+  }
+
+  /* 轮38（F-04 反馈）：触屏这条效果是「按住看」——:active 只在指下成立，
+     而过渡沿用卡片原有的 0.45s：拇指按住后还要再等近半秒才铺满，
+     体感就是「按不出来 / 要等一会儿」。
+     访客原话是「长按力度小一点、时间短一点就可呈现」，其中：
+       ·「时间短一点」→ 采纳：触屏路径单独缩短到 0.18s，一按即现、松手即回；
+       ·「力度小一点」→ 不采纳：Web 拿不到可靠的触屏按压力度（触屏上
+         PointerEvent 的 pressure 通常只是常量），且站内另一处「按住才出现」的
+         项目卡光晕（JS pointerdown 驱动，抬指后 550ms 才熄灭）是刻意设计的
+         交互语义，不擅自改动。
+     这里只写 transition-duration，沿用各元素原有的属性列表与缓动函数，
+     避免在覆盖时漏写属性导致某些变化失去过渡。
+     电脑端（hover: hover）不受本块影响，仍是 0.45s。 */
+  .about-card,
+  .about-card::before,
+  .about-card::after,
+  .about-card__icon,
+  .about-card__label,
+  .about-card__text {
+    transition-duration: 0.18s;
   }
 }
 

@@ -1139,8 +1139,10 @@
     });
   })();
 
-  /* ---------- 7. 终页 Ready：加载动画 → 展开「联系我」并滚过去（轮18 · USR-29 / 轮18b） ---------- */
-  // 你的修订口径：点 Ready → 按钮转圈（加载动画）→ 展开已并入终页的「联系我」→ 平滑滚动过去。
+  /* ---------- 7. 终页 Contact 按钮（原文案 Ready，轮38 按 F-07 反馈改名）：
+     加载动画 → 展开「联系我」并滚过去（轮18 · USR-29 / 轮18b） ---------- */
+  // 你的修订口径：点 Contact 按钮 → 按钮转圈（加载动画）→ 展开已并入终页的「联系我」→ 平滑滚动过去。
+  // 改名只动 HTML 文案与注释：id readyBtn 与 READY_DELAY 等内部命名一律保留，避免无谓的改动面。
   // 「联系我」默认收起（hidden）；它其中的 .copy-email 已被第 4 节的统一绑定接管。
   var readyBtn = document.getElementById("readyBtn");
   var contactBlock = document.getElementById("contact");

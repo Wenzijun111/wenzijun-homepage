@@ -474,16 +474,20 @@
           <p class="outro__text">前路没有标准答案，成长也从不会止步。</p>
           <p class="outro__text">期待能够和屏幕前的你，一同保持好奇，一同奔赴这场永不停歇的探索。</p>
 
-          <!-- Ready：点击后播放加载动画，随后展开下方「联系我」并平滑滚动过去 -->
+          <!-- Contact 按钮（原文案 Ready，轮38 按 F-07 反馈改名）：点击后播放加载动画，
+               随后展开下方「联系我」并平滑滚动过去。
+               改名理由：站内导航栏、首屏按钮、下方子区块小标都用 Contact 语义，
+               此处唯独用叙事词 Ready，访客看不出「这里可以联系我」。
+               id 仍为 readyBtn：保持 id / JS / CSS 引用不动，把改动面压到仅文案。 -->
           <div class="outro__actions">
             <button class="btn btn--primary" type="button" id="readyBtn" aria-controls="contact"
-              aria-expanded="false">Ready</button>
+              aria-expanded="false">Contact</button>
           </div>
 
           <!-- 联系我（轮18 · USR-29）：已并入终页内部，作为「向未知出发」的收尾内容，
                与终页同一张卡片、同一底色、无分界描边（去接缝）。
                保留锚点 contact：站内导航与滚动高亮仍指向这里；
-               点 Ready / 导航「Contact」/ 首屏按钮「联系我」后展开。 -->
+               点 Contact 按钮 / 导航「Contact」/ 首屏按钮「联系我」后展开。 -->
           <section class="contact outro__contact" id="contact" aria-labelledby="contactTitle" hidden>
             <h3 class="outro__contact-title" id="contactTitle">联系我 <span class="section__eyebrow">Contact</span></h3>
             <p class="contact__text">欢迎就项目合作、学习交流或任何想法与我联系。</p>
